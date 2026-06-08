@@ -1,56 +1,73 @@
 # TelefonRehberi - Kurumsal Telefon Rehberi Sistemi
 
 ## Vizyon
-Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebilir bir telefon rehberi ve kurumsal bilgi sistemi. Zamanla yemek listesi, nöbet çizelgeleri gibi ek modüllerle zenginleştirilecek modüler bir platform.
+Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebilir bir telefon rehberi ve kurumsal bilgi sistemi. Modüler yapısı sayesinde yemek listesi, nöbet çizelgeleri gibi ek modüllerle zenginleştirilebilir.
 
 ## Kullanıcı Rolleri
-- **Ziyaretçi (Anonim):** Sadece arama yapabilir, sonuçları görebilir
-- **Admin:** Kişi/birim CRUD, kullanıcı yönetimi, sistem ayarları, modül yönetimi
+- **Ziyaretçi (Anonim):** Arama yapabilir, kişi kartlarını görebilir, ünvan/birim filtreleme yapabilir
+- **Admin:** Kişi/birim/ünvan/ipucu CRUD, kullanıcı yönetimi, dosya yükleme
 
-## Teknoloji Kararları
+## Mevcut Özellikler
+- **Public Arama:** Ad, soyad, sicil, dahili, cep, email, ünvan alanlarında genişletilmiş arama (büyük/küçük harf duyarsız, Türkçe karakter normalize)
+- **Kişi Kartları:** Avatar (placeholder baş harfler), ünvan, birim badge, sicil, dahili/cep/email bilgileri, grid/list görünüm
+- **Ünvan/Birim Modal:** Ünvan veya birim adına tıklayınca o gruptaki kişileri listeleyen modal (içinde arama)
+- **İpucu Kartları:** Anasayfada otomatik kayan kullanım ipuçları (admin panelden yönetilir)
+- **Admin Panel:** Dashboard (istatistik + son eklenenler), Kişiler/Birimler/Ünvanlar/İpuçları/Kullanıcılar CRUD
+- **Dosya Yükleme:** Multer ile fotoğraf yükleme (2MB, jpg/png/webp)
+- **Seed:** Sadece admin kullanıcı oluşturur, demo veri yüklenmez
 
-| Katman | Teknoloji | Gerekçe |
-|--------|-----------|---------|
-| Backend | **NestJS** | Modüler yapısı sayesinde yeni modüller eklemek çok kolay. Decorator tabanlı, TypeScript, DI desteği |
-| Frontend | **Next.js 14+** | SSR/SSG, dosya tabanlı routing, hem public site hem admin panel tek projede |
-| UI Kiti | **TailwindCSS + shadcn/ui** | Admin ve public arayüz için hazır bileşenler, hızlı prototipleme |
-| Veritabanı | **SQLite** | Sıfır konfigürasyon, tek dosya, taşınabilir, kurum içi LAN için ideal, sunucu gerektirmez |
-| ORM | **Prisma** | Type-safe, migration desteği, SQLite dahil çoklu DB desteği, NestJS ile iyi entegrasyon |
-| Auth | **JWT (access + refresh token)** | İstemsiz, local network için ideal |
-| API | **REST (Swagger/OpenAPI)** | Standart, her dilden tüketilebilir, dökümantasyon otomatik |
-| Build | **pnpm** | Hızlı, disk efektif, monorepo desteği |
-| Monorepo | **Turborepo** | Backend + frontend tek repo altında, paylaşılan tipler |
+## Teknoloji
 
-## Tasarım Referansları
-1. **Admin Panel:** [Logip Admin Dashboard](https://dribbble.com/shots/21590789-Logip-Admin-Dashboard-Analytics-UX) - Koyu tema, kart tabanlı, yan menülü
-2. **Public Arayüz:** [Creative Talent Platform](https://dribbble.com/shots/27445480-Creative-Talent-Platform-Website-Design) - Modern, temiz, arama odaklı
-3. **Sorgu Sonuçları:** Liste ve kart görünümü, ikisi arasında geçiş
+| Katman | Teknoloji |
+|--------|-----------|
+| Backend | NestJS + Prisma + JWT |
+| Frontend | Next.js 14 (App Router) + TailwindCSS |
+| Veritabanı | SQLite |
+| Auth | JWT (access token) |
+| Monorepo | Turborepo + pnpm |
+| UI | Custom TailwindCSS (koyu tema, turuncu aksan) |
 
-## Dizin Yapısı (Taslak)
+## Proje Durumu
+
+- **MVP:** Tamamlandı (public arama + admin CRUD + auth)
+- **Genişletilmiş Arama:** Türkçe karakter + büyük/küçük harf duyarsız, tüm alanlarda
+- **Ünvan Modülü:** Backend + frontend CRUD, kişi formunda combobox
+- **İpucu Modülü:** Backend + frontend CRUD, anasayfada kayan kart
+- **Görev Yeri / Ünvan Modalı:** Kart tıklaması ile filtreleme
+
+## Dizin Yapısı
 
 ```
 TelefonRehberi/
 ├── apps/
-│   ├── api/                    # NestJS backend
+│   ├── api/
+│   │   ├── prisma/
+│   │   │   ├── schema.prisma
+│   │   │   └── migrations/
 │   │   ├── src/
 │   │   │   ├── modules/
-│   │   │   │   ├── contacts/   # Kişi modülü
-│   │   │   │   ├── departments/# Birim modülü
-│   │   │   │   ├── auth/       # Kimlik doğrulama
-│   │   │   │   └── ...         # Gelecek modüller
-│   │   │   ├── common/         # Paylaşılan utilities
-│   │   │   └── main.ts
-│   │   └── prisma/
-│   └── web/                    # Next.js frontend
+│   │   │   │   ├── auth/         # JWT giriş/kayıt/kullanıcı yönetimi
+│   │   │   │   ├── contacts/     # Kişi CRUD + arama
+│   │   │   │   ├── departments/  # Birim CRUD
+│   │   │   │   ├── titles/       # Ünvan CRUD
+│   │   │   │   ├── tips/         # İpucu CRUD
+│   │   │   │   └── upload/       # Dosya yükleme
+│   │   │   ├── common/           # Guard, interceptor, filtre
+│   │   │   └── seed.ts
+│   │   └── uploads/contacts/
+│   └── web/
 │       ├── src/
 │       │   ├── app/
-│       │   │   ├── (public)/   # Herkese açık sayfalar
-│       │   │   └── (admin)/    # Admin panel sayfaları
-│       │   ├── components/
-│       │   └── lib/
+│       │   │   ├── admin/        # Dashboard, contacts, departments, titles, tips, users
+│       │   │   ├── globals.css
+│       │   │   ├── layout.tsx
+│       │   │   └── page.tsx      # Public arama sayfası
+│       │   ├── lib/
+│       │   │   ├── api.ts
+│       │   │   └── auth.tsx
+│       │   └── types/
 │       └── ...
-├── packages/
-│   └── shared/                 # Paylaşılan TypeScript tipleri
-├── .planning/                  # Planlama dokümanları
-└── package.json                # Turborepo root
+├── .planning/
+├── start.bat
+└── package.json
 ```
