@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Department {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  parentId  Int?
+  parent    Department?  @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children  Department[] @relation("DepartmentHierarchy")
+  contacts  Contact[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Title {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  contacts  Contact[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Contact {
+  id            Int       @id @default(autoincrement())
+  firstName     String
+  lastName      String
+  sicilNo       String?
+  titleId       Int?
+  title         Title?    @relation(fields: [titleId], references: [id])
+  phoneInternal String?
+  phoneMobile   String?
+  email         String?
+  avatar        String?
+  departmentId  Int?
+  department    Department? @relation(fields: [departmentId], references: [id])
+  isFav         Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tip {
+  id        Int      @id @default(autoincrement())
+  text      String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
