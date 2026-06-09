@@ -7,7 +7,7 @@ import { useTheme } from '@/lib/theme';
 import { Contact, Department } from '@/types';
 import {
   Search, Grid3X3, List, Building2, Phone, Mail, User,
-  ArrowRight, Sparkles, ChevronLeft, ChevronRight, X, Users, BadgeCheck, Lightbulb, Star, Clock, Trash2, LayoutDashboard, Pencil,
+  ArrowRight, Sparkles, ChevronLeft, ChevronRight, X, Users, BadgeCheck, Lightbulb, Star, Clock, Trash2, LayoutDashboard, Pencil, Utensils,
 } from 'lucide-react';
 
 function getInitials(f: string, l: string) { return `${f.charAt(0)}${l.charAt(0)}`.toUpperCase(); }
@@ -71,6 +71,11 @@ export default function HomePage() {
   const [tipSpeed, setTipSpeed] = useState(4000);
   const [tipsEnabled, setTipsEnabled] = useState(true);
 
+  // Today's meal
+  const [todayMeal, setTodayMeal] = useState<any>(null);
+  const [mealLoading, setMealLoading] = useState(true);
+  const [todayMealEnabled, setTodayMealEnabled] = useState(true);
+
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
@@ -90,10 +95,15 @@ export default function HomePage() {
     api.getSettings().then((res) => {
       if (res?.data?.tipSpeed) setTipSpeed(Number(res.data.tipSpeed));
       if (res?.data?.tipsEnabled !== undefined) setTipsEnabled(res.data.tipsEnabled !== 'false');
+      if (res?.data?.todayMealEnabled !== undefined) setTodayMealEnabled(res.data.todayMealEnabled !== 'false');
     }).catch(() => {});
     api.getFavorites(1, 50).then((res) => {
       setFavorites(res.data);
     }).catch(() => {}).finally(() => setFavsLoading(false));
+    api.getTodayMeal().then((res) => {
+      const data = res.data ?? res;
+      if (data) setTodayMeal(data);
+    }).catch(() => {}).finally(() => setMealLoading(false));
   }, []);
 
   // Auto-rotate tips
@@ -330,6 +340,15 @@ export default function HomePage() {
                 <p className="text-xs text-gray-500">Telefon Rehberi</p>
               </div>
             </div>
+            <a
+              href="/meal-plans"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-300
+                         border border-white/[0.08] hover:border-amber-500/30 hover:text-amber-400
+                         hover:bg-amber-500/5 transition-all duration-200"
+            >
+              <Utensils className="w-4 h-4" />
+              <span className="hidden sm:inline">Yemek Listesi</span>
+            </a>
             {isAuthenticated ? (
               <a
                 href="/admin"
@@ -355,7 +374,46 @@ export default function HomePage() {
           </div>
 
           {/* Hero Content */}
-          <div className="text-center py-16 md:py-24">
+          <div className={`text-center transition-all duration-500 ease-in-out ${
+            searched ? 'py-6 md:py-8' : 'py-16 md:py-24'
+          }`}>
+            {/* Today's Meal (animated: appears inside hero when searched) */}
+            {!mealLoading && todayMeal && todayMealEnabled && searched && (
+              <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                searched ? 'max-h-40 opacity-100 mb-6' : 'max-h-0 opacity-0 mb-0'
+              }`}>
+                <div className="glass rounded-2xl p-4 border border-white/[0.06] text-left max-w-2xl mx-auto">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 flex items-center justify-center flex-shrink-0">
+                      <Utensils className="w-5 h-5 text-amber-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h2 className="text-xs font-semibold text-white tracking-wide">Bugünün Yemeği</h2>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mb-0.5">Çorba</p>
+                          <p className="text-xs text-white">{todayMeal.soup || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mb-0.5">Ana Yemek</p>
+                          <div className="flex flex-wrap gap-1">
+                            {(Array.isArray(todayMeal.mainDishes) ? todayMeal.mainDishes : JSON.parse(todayMeal.mainDishes || '[]')).map((dish: string, i: number) => (
+                              <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-500/10 text-brand-300 text-[10px] font-medium">{dish}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mb-0.5">Salata</p>
+                          <p className="text-xs text-white">{todayMeal.salad || '-'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium mb-6">
               <Sparkles className="w-3.5 h-3.5" />
               Burdur Adliyesi Personel Bilgi Sistemi
@@ -452,6 +510,43 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Today's Meal (shown below hero when not searched) */}
+      {!mealLoading && todayMeal && todayMealEnabled && !searched && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+          <div className="glass rounded-2xl p-5 border border-white/[0.06] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-brand-500/5 rounded-full blur-3xl" />
+            <div className="flex items-start gap-4 relative">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 flex items-center justify-center flex-shrink-0">
+                <Utensils className="w-6 h-6 text-amber-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-3">
+                  <h2 className="text-sm font-semibold text-white tracking-wide">Bugünün Yemeği</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1 font-medium uppercase tracking-wider">Çorba</p>
+                    <p className="text-sm text-white">{todayMeal.soup || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1 font-medium uppercase tracking-wider">Ana Yemek</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(Array.isArray(todayMeal.mainDishes) ? todayMeal.mainDishes : JSON.parse(todayMeal.mainDishes || '[]')).map((dish: string, i: number) => (
+                        <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-lg bg-brand-500/10 text-brand-300 text-xs font-medium">{dish}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1 font-medium uppercase tracking-wider">Salata</p>
+                    <p className="text-sm text-white">{todayMeal.salad || '-'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Results */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
@@ -591,16 +686,6 @@ export default function HomePage() {
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">Sonuç bulunamadı</h3>
             <p className="text-gray-500">Farklı bir arama terimi deneyin veya filtreleri temizleyin</p>
-          </div>
-        )}
-
-        {!loading && !searched && (
-          <div className="text-center py-24">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-brand-500/10 to-brand-600/5 border border-brand-500/10 flex items-center justify-center mx-auto mb-8">
-              <Phone className="w-9 h-9 text-brand-400/60" />
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">Burdur Adliyesi Telefon Rehberi</h3>
-            <p className="text-gray-500">Yukarıdaki arama çubuğunu kullanarak kişileri görüntüleyebilirsiniz</p>
           </div>
         )}
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useRouter, usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, Users, Building2, UserCog, BadgeCheck, Lightbulb, LogOut, Menu, X, Phone, Search, ChevronDown, Bell, Home,
+  LayoutDashboard, Users, Building2, UserCog, BadgeCheck, Lightbulb, LogOut, Menu, X, Phone, Search, ChevronDown, Bell, Home, Utensils, Puzzle,
 } from 'lucide-react';
 
 const menuItems = [
@@ -14,6 +14,8 @@ const menuItems = [
   { href: '/admin/titles', label: 'Ünvanlar', icon: BadgeCheck },
   { href: '/admin/departments', label: 'Birimler', icon: Building2 },
   { href: '/admin/tips', label: 'İpuçları', icon: Lightbulb },
+  { href: '/admin/meal-plans', label: 'Yemek Listesi', icon: Utensils },
+  { href: '/admin/modules', label: 'Modüller', icon: Puzzle },
   { href: '/admin/users', label: 'Kullanıcılar', icon: UserCog },
 ];
 

@@ -202,4 +202,45 @@ export const api = {
     }
     return res.json();
   },
+
+  getModules: () => request<any>('/admin/modules'),
+
+  updateModule: (id: number, enabled: boolean) =>
+    request<any>(`/admin/modules/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ enabled }),
+    }),
+
+  getMealPlans: (week?: string) =>
+    request<any>(`/meal-plans${week ? `?week=${week}` : ''}`),
+
+  getTodayMeal: () => request<any>('/meal-plans/today'),
+
+  createMealPlan: (data: {
+    weekStart: string; dayOfWeek: number;
+    soup: string; mainDishes: string[]; salad: string;
+  }) => request<any>('/admin/meal-plans', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateMealPlan: (id: number, data: {
+    weekStart?: string; dayOfWeek?: number;
+    soup?: string; mainDishes?: string[]; salad?: string;
+  }) => request<any>(`/admin/meal-plans/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  deleteMealPlan: (id: number) =>
+    request<any>(`/admin/meal-plans/${id}`, { method: 'DELETE' }),
+
+  getFoodItems: (category?: string) =>
+    request<any>(`/food-items${category ? `?category=${category}` : ''}`),
+
+  createFoodItem: (name: string, category: string) =>
+    request<any>('/admin/food-items', {
+      method: 'POST',
+      body: JSON.stringify({ name, category }),
+    }),
 };

@@ -41,6 +41,14 @@ Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebili
 - **Arama Geçmişi Kırpılma Düzeltmesi:** Hero wrapper'daki `overflow-hidden` dekorasyon elemanlarına özel bir kapsayıcıya taşındı, dropdown artık kırpılmıyor
 - **Tema Sistemi:** Kullanıcının seçimine bağlı 4 tema (Turuncu, Mavi, Mor, Lacivert); brand rengi, hero gradient, butonlar, glow efektleri CSS değişkenleri ile tema class'ına göre değişir; `ThemeProvider` context ile localStorage + API'ye kaydedilir; tüm sayfalarda geçerlidir
 - **Burdur Adliyesi Telefon Rehberi:** Tüm "Telefon Rehberi" referansları "Burdur Adliyesi Telefon Rehberi" olarak güncellendi
+- **Tema Değiştirici:** Sağ alt köşeye sabitlenen tema seçici, tüm sayfalarda görünür
+
+### Phase 5 — Modül Altyapısı & Haftalık Yemek Listesi (Tamamlandı)
+- **Modül Sistemi (Görev 1-3):** `Module` modeli (key/name/description/enabled), backend `ModulesModule` ile GET/PATCH API, admin panelde modül yönetim sayfası (aktif/pasif toggle), yan menüde Modüller linki
+- **Yemek Listesi Backend (Görev 4):** `MealPlan` modeli (weekStart/dayOfWeek/soup/mainDishes/salad), `FoodItem` modeli (name/category ile benzersiz), haftalık sorgu + bugünün yemeği endpoint'leri, admin CRUD
+- **Yemek Listesi Frontend Admin (Görev 5):** Hafta seçici + 5 gün (Pzt-Cuma) × 3 kategori tablosu; modal tabanlı yemek seçici (FoodItem havuzundan seçim + yeni ekleme); anasayfada gösterme toggle'ı
+- **Yemek Listesi Public:** `/meal-plans` sayfasında haftalık kart görünümü; anasayfada "Bugünün Yemeği" kartı (hero içinde animasyonlu taşınma, admin toggle ile açılıp kapatılabilir)
+- **FoodItem Havuzu:** Çorba/ana yemek/salata kategorilerinde önceden tanımlı yemek listesi (14 varsayılan yemek seed'li), admin ekleme/silme
 
 ## Teknoloji
 
@@ -62,7 +70,8 @@ Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebili
 - **Phase 2 (Gelişmiş Özellikler):** Tamamlandı (Tüm Task 1.x ve 2.x)
 - **Phase 3 (İyileştirmeler):** Tamamlandı
 - **Phase 4 (Tema Sistemi & İyileştirmeler):** Tamamlandı
-- **Sonraki Fazlar:** Planlama aşamasında
+- **Phase 5 (Modül Altyapısı & Yemek Listesi):** Tamamlandı
+- **Sonraki Fazlar:** Planlama aşamasında (Nöbet Çizelgeleri)
 
 ## Dizin Yapısı
 
@@ -83,14 +92,18 @@ TelefonRehberi/
 │   │   │   │   ├── departments/    # Birim CRUD + hiyerarşik ağaç
 │   │   │   │   ├── titles/         # Ünvan CRUD
 │   │   │   │   ├── tips/           # İpucu CRUD
-│   │   │   │   ├── settings/       # Sistem ayarları (ipucu hızı vb.)
+│   │   │   │   ├── settings/       # Sistem ayarları (ipucu hızı, tema, yemek toggle)
+│   │   │   │   ├── modules/        # Modül yönetimi (aktif/pasif)
+│   │   │   │   ├── meal-plans/     # Haftalık yemek listesi CRUD
+│   │   │   │   ├── food-items/     # Yemek havuzu (çorba/ana yemek/salata)
 │   │   │   │   └── upload/         # Dosya yükleme
 │   │   │   └── seed.ts
 │   │   └── uploads/contacts/
 │   └── web/
 │       ├── src/
 │       │   ├── app/
-│       │   │   ├── admin/          # Dashboard (grafikli), contacts, departments (ağaç), titles, tips, users
+│   │       │   ├── admin/          # Dashboard (grafikli), contacts, departments (ağaç), titles, tips, users, modules, meal-plans
+│   │       │   ├── meal-plans/     # Haftalık yemek listesi (public)
 │       │   │   ├── globals.css
 │       │   │   ├── layout.tsx
 │       │   │   └── page.tsx        # Public arama (favori + tarihçe + fuzzy)
@@ -103,7 +116,8 @@ TelefonRehberi/
 ├── .planning/
 │   ├── PROJECT.md
 │   ├── ROADMAP.md
-│   └── phases/02-advanced/01-PLAN.md
+│   ├── phases/02-advanced/01-PLAN.md
+│   └── phases/03-module-system/01-PLAN.md
 ├── .opencode/
 │   ├── agents/
 │   │   └── tester.md               # Tester ajanı

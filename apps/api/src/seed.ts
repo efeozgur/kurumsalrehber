@@ -151,6 +151,40 @@ async function main() {
     console.log('Varsayılan ayarlar oluşturuldu.');
   }
 
+  // Varsayılan modüller
+  const modulesCount = await prisma.module.count();
+  if (modulesCount === 0) {
+    await prisma.module.create({
+      data: { key: 'meal-plans', name: 'Yemek Listesi', description: 'Haftalık yemek listesi yönetimi', enabled: true },
+    });
+    console.log('Varsayılan modüller oluşturuldu.');
+  }
+
+  // Varsayılan yemekler
+  const foodCount = await prisma.foodItem.count();
+  if (foodCount === 0) {
+    const defaultFoods = [
+      { name: 'Mercimek Çorbası', category: 'soup' },
+      { name: 'Ezogelin Çorbası', category: 'soup' },
+      { name: 'Tarhana Çorbası', category: 'soup' },
+      { name: 'Domates Çorbası', category: 'soup' },
+      { name: 'Kuru Fasulye', category: 'main' },
+      { name: 'Pilav', category: 'main' },
+      { name: 'Tavuk Şiş', category: 'main' },
+      { name: 'Köfte', category: 'main' },
+      { name: 'Izgara Balık', category: 'main' },
+      { name: 'Makarna', category: 'main' },
+      { name: 'Mevsim Salata', category: 'salad' },
+      { name: 'Çoban Salata', category: 'salad' },
+      { name: 'Yeşil Salata', category: 'salad' },
+      { name: 'Rus Salatası', category: 'salad' },
+    ];
+    for (const food of defaultFoods) {
+      await prisma.foodItem.create({ data: food });
+    }
+    console.log('Varsayılan yemekler oluşturuldu.');
+  }
+
   console.log('Seed tamamlandı!');
 }
 

@@ -7,6 +7,9 @@ import { UploadModule } from './modules/upload/upload.module';
 import { TitlesModule } from './modules/titles/titles.module';
 import { TipsModule } from './modules/tips/tips.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { ModulesModule } from './modules/modules/modules.module';
+import { MealPlanModule } from './modules/meal-plans/meal-plan.module';
+import { FoodItemsModule } from './modules/food-items/food-items.module';
 
 @Module({
   imports: [
@@ -18,6 +21,9 @@ import { SettingsModule } from './modules/settings/settings.module';
     TitlesModule,
     TipsModule,
     SettingsModule,
+    ModulesModule,
+    MealPlanModule,
+    FoodItemsModule,
   ],
 })
 export class AppModule {}
