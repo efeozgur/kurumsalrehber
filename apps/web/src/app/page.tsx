@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth';
 import { Contact, Department } from '@/types';
 import {
   Search, Grid3X3, List, Building2, Phone, Mail, User,
-  ArrowRight, Sparkles, ChevronLeft, ChevronRight, X, Users, BadgeCheck, Lightbulb, Star, Clock, Trash2, LayoutDashboard,
+  ArrowRight, Sparkles, ChevronLeft, ChevronRight, X, Users, BadgeCheck, Lightbulb, Star, Clock, Trash2, LayoutDashboard, Pencil,
 } from 'lucide-react';
 
 function getInitials(f: string, l: string) { return `${f.charAt(0)}${l.charAt(0)}`.toUpperCase(); }
@@ -170,6 +170,20 @@ export default function HomePage() {
       setModalLoading(false);
     }
   }, []);
+
+  const isAdmin = isAuthenticated && user?.role && ['ADMIN', 'SUPER_ADMIN'].includes(user.role);
+  const isSuper = user?.role === 'SUPER_ADMIN';
+
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`"${name}" silinecek. Emin misiniz?`)) return;
+    try {
+      await api.deleteContact(id);
+      setContacts((prev) => prev.filter((c) => c.id !== id));
+      setFavorites((prev) => prev.filter((c) => c.id !== id));
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
 
   const toggleFav = async (id: number) => {
     try {
@@ -510,6 +524,26 @@ export default function HomePage() {
                         </div>
                       )}
                     </div>
+                    {isAdmin && (
+                      <div className="flex items-center justify-center gap-2 px-5 pb-4">
+                        <a
+                          href={`/admin/contacts/${contact.id}`}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-brand-400 bg-brand-500/10 hover:bg-brand-500/20 transition-all"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                          Düzenle
+                        </a>
+                        {isSuper && (
+                          <button
+                            onClick={() => handleDelete(contact.id, `${contact.firstName} ${contact.lastName}`)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-all"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Sil
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -696,6 +730,27 @@ export default function HomePage() {
                       <p className="text-center text-xs text-gray-600 py-1">İletişim bilgisi bulunmuyor</p>
                     )}
                   </div>
+
+                  {isAdmin && (
+                    <div className="flex items-center justify-center gap-2 pt-3 mt-3 border-t border-white/[0.06]">
+                      <a
+                        href={`/admin/contacts/${contact.id}`}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-brand-400 bg-brand-500/10 hover:bg-brand-500/20 transition-all"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        Düzenle
+                      </a>
+                      {isSuper && (
+                        <button
+                          onClick={() => handleDelete(contact.id, `${contact.firstName} ${contact.lastName}`)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-all"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Sil
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -767,6 +822,24 @@ export default function HomePage() {
                     )}
                   </div>
                 </div>
+                {isAdmin && (
+                  <div className="flex items-center gap-1.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <a
+                      href={`/admin/contacts/${contact.id}`}
+                      className="p-2 rounded-lg text-gray-500 hover:text-brand-400 hover:bg-brand-500/10 transition-all"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </a>
+                    {isSuper && (
+                      <button
+                        onClick={() => handleDelete(contact.id, `${contact.firstName} ${contact.lastName}`)}
+                        className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
