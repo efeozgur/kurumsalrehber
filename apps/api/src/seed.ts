@@ -185,6 +185,75 @@ async function main() {
     console.log('Varsayılan yemekler oluşturuldu.');
   }
 
+  // Demo SearchLog verileri (son 30 gün)
+  const searchLogCount = await prisma.searchLog.count();
+  if (searchLogCount === 0) {
+    const now = new Date();
+    const queries = [
+      'Ahmet', 'Ayşe', 'Mehmet', 'Fatma', 'Mustafa', 'Zeynep', 'Ali', 'Elif',
+      'Hukuk', 'Muhasebe', 'Bilgi İşlem', 'İnsan Kaynakları', 'İdari İşler',
+      'Avukat', 'Müdür', 'Memur', 'Tekniker', 'Hakim', 'Savcı',
+      'Yılmaz', 'Demir', 'Kaya', 'Koç', 'Yıldız',
+      'dahili', 'telefon', 'mail', 'adres',
+    ];
+    const noResultQueries = ['xyztest', 'bulunamadı', 'olmayankisi', 'yanlış', 'test12345', 'deneme'];
+
+    const logs: any[] = [];
+
+    // Normal aramalar
+    for (let i = 0; i < 80; i++) {
+      const daysAgo = Math.floor(Math.random() * 30);
+      const hoursAgo = Math.floor(Math.random() * 24);
+      const date = new Date(now.getTime() - daysAgo * 86400000 - hoursAgo * 3600000);
+      const query = queries[Math.floor(Math.random() * queries.length)];
+      logs.push({
+        query,
+        resultCount: Math.floor(Math.random() * 20) + 1,
+        source: 'search',
+        createdAt: date,
+      });
+    }
+
+    // Boş sonuç dönen aramalar
+    for (let i = 0; i < 12; i++) {
+      const daysAgo = Math.floor(Math.random() * 30);
+      const date = new Date(now.getTime() - daysAgo * 86400000);
+      const query = noResultQueries[Math.floor(Math.random() * noResultQueries.length)];
+      logs.push({
+        query,
+        resultCount: 0,
+        source: 'search',
+        createdAt: date,
+      });
+    }
+
+    // Görüntüleme logları (contactId 1-50 arası)
+    for (let i = 0; i < 30; i++) {
+      const daysAgo = Math.floor(Math.random() * 30);
+      const date = new Date(now.getTime() - daysAgo * 86400000);
+      logs.push({
+        contactId: Math.floor(Math.random() * 50) + 1,
+        resultCount: 1,
+        source: 'view',
+        createdAt: date,
+      });
+    }
+
+    // Export logları
+    for (let i = 0; i < 5; i++) {
+      const daysAgo = Math.floor(Math.random() * 30);
+      const date = new Date(now.getTime() - daysAgo * 86400000);
+      logs.push({
+        resultCount: 0,
+        source: 'export',
+        createdAt: date,
+      });
+    }
+
+    await prisma.searchLog.createMany({ data: logs });
+    console.log('Demo SearchLog verileri oluşturuldu.');
+  }
+
   console.log('Seed tamamlandı!');
 }
 

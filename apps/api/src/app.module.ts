@@ -10,6 +10,7 @@ import { SettingsModule } from './modules/settings/settings.module';
 import { ModulesModule } from './modules/modules/modules.module';
 import { MealPlanModule } from './modules/meal-plans/meal-plan.module';
 import { FoodItemsModule } from './modules/food-items/food-items.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { FoodItemsModule } from './modules/food-items/food-items.module';
     ModulesModule,
     MealPlanModule,
     FoodItemsModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}

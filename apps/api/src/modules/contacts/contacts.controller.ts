@@ -21,11 +21,15 @@ import { ContactsService } from './contacts.service';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { AnalyticsService } from '../analytics/analytics.service';
 
 @ApiTags('Contacts')
 @Controller()
 export class ContactsController {
-  constructor(private contactsService: ContactsService) {}
+  constructor(
+    private contactsService: ContactsService,
+    private analyticsService: AnalyticsService,
+  ) {}
 
   @Public()
   @Get('api/contacts/search')
@@ -35,7 +39,7 @@ export class ContactsController {
   @ApiQuery({ name: 'fav', required: false })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
-  search(
+  async search(
     @Query('q') q?: string,
     @Query('departmentId') departmentId?: string,
     @Query('titleId') titleId?: string,
@@ -43,7 +47,7 @@ export class ContactsController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.contactsService.search(
+    const result = await this.contactsService.search(
       q,
       departmentId ? +departmentId : undefined,
       titleId ? +titleId : undefined,
@@ -51,6 +55,8 @@ export class ContactsController {
       page ? +page : 1,
       limit ? +limit : 20,
     );
+    this.analyticsService.logSearch(q, result.meta.total).catch((e) => console.error('[logSearch]', e));
+    return result;
   }
 
   @Public()
@@ -67,8 +73,10 @@ export class ContactsController {
 
   @Public()
   @Get('api/contacts/:id')
-  findOne(@Param('id') id: string) {
-    return this.contactsService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const contact = await this.contactsService.findOne(+id);
+    this.analyticsService.logView(+id).catch((e) => console.error('[logView]', e));
+    return contact;
   }
 
   @Public()
@@ -100,12 +108,12 @@ export class ContactsController {
   @Get('api/admin/contacts')
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
-  adminList(
+  async adminList(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('q') q?: string,
   ) {
-    return this.contactsService.search(
+    const result = await this.contactsService.search(
       q,
       undefined,
       undefined,
@@ -113,6 +121,8 @@ export class ContactsController {
       page ? +page : 1,
       limit ? +limit : 50,
     );
+    this.analyticsService.logSearch(q, result.meta.total).catch(() => {});
+    return result;
   }
 
   @ApiBearerAuth()
@@ -152,6 +162,7 @@ export class ContactsController {
   ) {
     const fmt = format === 'csv' ? 'csv' : 'xlsx';
     const { buffer, ext, type } = await this.contactsService.exportData(fmt, departmentId ? +departmentId : undefined);
+    this.analyticsService.logExport().catch((e) => console.error('[logExport]', e));
     res.setHeader('Content-Type', type);
     res.setHeader('Content-Disposition', `attachment; filename="kisiler.${ext}"`);
     res.send(buffer);

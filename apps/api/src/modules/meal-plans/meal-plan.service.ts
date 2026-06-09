@@ -5,7 +5,13 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class MealPlanService {
   constructor(private prisma: PrismaService) {}
 
+  private async isModuleEnabled(): Promise<boolean> {
+    const mod = await this.prisma.module.findUnique({ where: { key: 'meal-plans' } });
+    return mod?.enabled ?? true;
+  }
+
   async findByWeek(weekStart: string) {
+    if (!(await this.isModuleEnabled())) return [];
     const meals = await this.prisma.mealPlan.findMany({
       where: { weekStart },
       orderBy: { dayOfWeek: 'asc' },
@@ -17,11 +23,12 @@ export class MealPlanService {
   }
 
   async findToday(weekStart: string, dayOfWeek: number) {
+    if (!(await this.isModuleEnabled())) return { moduleEnabled: false, data: null };
     const meal = await this.prisma.mealPlan.findFirst({
       where: { weekStart, dayOfWeek },
     });
-    if (!meal) return null;
-    return { ...meal, mainDishes: JSON.parse(meal.mainDishes) };
+    if (!meal) return { moduleEnabled: true, data: null };
+    return { moduleEnabled: true, data: { ...meal, mainDishes: JSON.parse(meal.mainDishes) } };
   }
 
   async create(data: {

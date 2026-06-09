@@ -205,6 +205,8 @@ export const api = {
 
   getModules: () => request<any>('/admin/modules'),
 
+  getModuleStatus: (key: string) => request<any>(`/modules/${key}/status`),
+
   updateModule: (id: number, enabled: boolean) =>
     request<any>(`/admin/modules/${id}`, {
       method: 'PATCH',
@@ -243,4 +245,38 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ name, category }),
     }),
+
+  logSearch: (query?: string, resultCount = 0) =>
+    fetch(`${API_BASE}/analytics/log/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, resultCount }),
+    }).catch(() => {}),
+
+  logView: (contactId: number) =>
+    fetch(`${API_BASE}/analytics/log/view`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contactId }),
+    }).catch(() => {}),
+
+  logExport: () =>
+    fetch(`${API_BASE}/analytics/log/export`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    }).catch(() => {}),
+
+  getAnalyticsSummary: () => request<any>('/admin/analytics/summary'),
+
+  getAnalyticsSearchTerms: () => request<any>('/admin/analytics/search-terms'),
+
+  getAnalyticsTopContacts: () => request<any>('/admin/analytics/top-contacts'),
+
+  getAnalyticsUsageHourly: () => request<any>('/admin/analytics/usage-hourly'),
+
+  getAnalyticsUsageDaily: () => request<any>('/admin/analytics/usage-daily'),
+
+  getAnalyticsNoResults: () => request<any>('/admin/analytics/no-results'),
+
+  getAnalyticsFavStats: () => request<any>('/admin/analytics/fav-stats'),
 };

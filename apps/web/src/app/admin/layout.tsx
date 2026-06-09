@@ -6,8 +6,9 @@ import { useRouter, usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, Building2, UserCog, BadgeCheck, Lightbulb, LogOut, Menu, X, Phone, Search, ChevronDown, Bell, Home, Utensils, Puzzle,
 } from 'lucide-react';
+import { api } from '@/lib/api';
 
-const menuItems = [
+const baseMenuItems = [
   { href: '/', label: 'Ana Sayfa', icon: Home },
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/contacts', label: 'Kişiler', icon: Users },
@@ -26,6 +27,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [setupCheck, setSetupCheck] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
+  const [mealPlansEnabled, setMealPlansEnabled] = useState(true);
+
+  useEffect(() => {
+    api.getModuleStatus('meal-plans').then((res) => {
+      setMealPlansEnabled(res.enabled !== false);
+    }).catch(() => {});
+  }, []);
+
+  const menuItems = baseMenuItems.filter((item) => {
+    if (item.href === '/admin/meal-plans') return mealPlansEnabled;
+    return true;
+  });
 
   useEffect(() => {
     if (pathname === '/admin/login' || pathname === '/admin/setup') return;

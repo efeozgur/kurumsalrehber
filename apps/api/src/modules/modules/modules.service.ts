@@ -9,6 +9,10 @@ export class ModulesService {
     return this.prisma.module.findMany({ orderBy: { id: 'asc' } });
   }
 
+  findByKey(key: string) {
+    return this.prisma.module.findUnique({ where: { key } });
+  }
+
   update(id: number, data: { enabled: boolean }) {
     return this.prisma.module.update({ where: { id }, data });
   }

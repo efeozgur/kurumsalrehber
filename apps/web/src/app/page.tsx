@@ -75,6 +75,7 @@ export default function HomePage() {
   const [todayMeal, setTodayMeal] = useState<any>(null);
   const [mealLoading, setMealLoading] = useState(true);
   const [todayMealEnabled, setTodayMealEnabled] = useState(true);
+  const [mealPlansEnabled, setMealPlansEnabled] = useState(false);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -101,8 +102,14 @@ export default function HomePage() {
       setFavorites(res.data);
     }).catch(() => {}).finally(() => setFavsLoading(false));
     api.getTodayMeal().then((res) => {
-      const data = res.data ?? res;
-      if (data) setTodayMeal(data);
+      const body = res.data ?? res;
+      if (body && typeof body.moduleEnabled === 'boolean') {
+        setMealPlansEnabled(body.moduleEnabled);
+        if (body.data) setTodayMeal(body.data);
+      } else if (body) {
+        setMealPlansEnabled(true);
+        setTodayMeal(body);
+      }
     }).catch(() => {}).finally(() => setMealLoading(false));
   }, []);
 
@@ -340,15 +347,17 @@ export default function HomePage() {
                 <p className="text-xs text-gray-500">Telefon Rehberi</p>
               </div>
             </div>
-            <a
-              href="/meal-plans"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-300
-                         border border-white/[0.08] hover:border-amber-500/30 hover:text-amber-400
-                         hover:bg-amber-500/5 transition-all duration-200"
-            >
-              <Utensils className="w-4 h-4" />
-              <span className="hidden sm:inline">Yemek Listesi</span>
-            </a>
+            {mealPlansEnabled && (
+              <a
+                href="/meal-plans"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-300
+                           border border-white/[0.08] hover:border-amber-500/30 hover:text-amber-400
+                           hover:bg-amber-500/5 transition-all duration-200"
+              >
+                <Utensils className="w-4 h-4" />
+                <span className="hidden sm:inline">Yemek Listesi</span>
+              </a>
+            )}
             {isAuthenticated ? (
               <a
                 href="/admin"
@@ -378,7 +387,7 @@ export default function HomePage() {
             searched ? 'py-6 md:py-8' : 'py-16 md:py-24'
           }`}>
             {/* Today's Meal (animated: appears inside hero when searched) */}
-            {!mealLoading && todayMeal && todayMealEnabled && searched && (
+            {!mealLoading && todayMeal && todayMealEnabled && mealPlansEnabled && searched && (
               <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
                 searched ? 'max-h-40 opacity-100 mb-6' : 'max-h-0 opacity-0 mb-0'
               }`}>
@@ -512,7 +521,7 @@ export default function HomePage() {
       </div>
 
       {/* Today's Meal (shown below hero when not searched) */}
-      {!mealLoading && todayMeal && todayMealEnabled && !searched && (
+      {!mealLoading && todayMeal && todayMealEnabled && mealPlansEnabled && !searched && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
           <div className="glass rounded-2xl p-5 border border-white/[0.06] relative overflow-hidden">
             <div className="absolute top-0 right-0 w-48 h-48 bg-brand-500/5 rounded-full blur-3xl" />
