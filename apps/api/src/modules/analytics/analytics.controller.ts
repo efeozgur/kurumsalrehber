@@ -2,12 +2,14 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
-  Param,
+  HttpCode,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AnalyticsService } from './analytics.service';
 import { Public } from '../../common/decorators/public.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { CreateSearchLogDto } from './dto/create-search-log.dto';
 
 @ApiTags('Analytics')
@@ -76,5 +78,14 @@ export class AnalyticsController {
   @Get('api/admin/analytics/fav-stats')
   getFavStats() {
     return this.analyticsService.getFavStats();
+  }
+
+  @ApiBearerAuth()
+  @Roles('SUPER_ADMIN')
+  @Delete('api/admin/analytics/clear')
+  @HttpCode(200)
+  async clear() {
+    await this.analyticsService.clearAll();
+    return { success: true };
   }
 }

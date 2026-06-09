@@ -43,6 +43,7 @@ export default function HomePage() {
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     try {
@@ -170,6 +171,17 @@ export default function HomePage() {
   };
 
   const handleSearch = (p = 1) => doSearch(query, p);
+
+  const handleClear = () => {
+    setQuery('');
+    setContacts([]);
+    setSearched(false);
+    setTotal(0);
+    setTotalPages(1);
+    setShowFav(false);
+    setPage(1);
+    inputRef.current?.focus();
+  };
 
   const openModal = useCallback(async (type: 'title' | 'department', id: number, name: string) => {
     setModalType(type);
@@ -441,6 +453,7 @@ export default function HomePage() {
                   <div className="flex-1 relative" ref={searchRef}>
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                     <input
+                      ref={inputRef}
                       type="text"
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
@@ -475,6 +488,12 @@ export default function HomePage() {
                     <Search className="w-4 h-4" />
                     Ara
                   </button>
+                  {(query || searched) && (
+                    <button onClick={handleClear} className="px-4 py-4 rounded-xl text-sm font-medium text-gray-500 hover:text-white hover:bg-white/[0.06] transition-all whitespace-nowrap flex items-center gap-2">
+                      <X className="w-4 h-4" />
+                      <span className="hidden sm:inline">Temizle</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

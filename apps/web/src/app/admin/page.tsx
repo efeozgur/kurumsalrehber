@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { Stats, AnalyticsSummary, SearchTerm, TopContactView, HourlyUsage, DailyUsage, NoResultQuery, FavStat, Contact } from '@/types';
 import {
   Users, Building2, UserCog, Phone, TrendingUp, ArrowUpRight, ArrowDownRight, Clock, Sparkles,
-  Search, BarChart3, AlertCircle, Layers, Eye, Star,
+  Search, BarChart3, AlertCircle, Layers, Eye, Star, Trash2,
 } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
@@ -21,6 +22,9 @@ export default function AdminDashboard() {
   const [noResults, setNoResults] = useState<NoResultQuery[]>([]);
   const [favStats, setFavStats] = useState<FavStat[]>([]);
   const [loading, setLoading] = useState(true);
+  const [clearing, setClearing] = useState(false);
+  const { user } = useAuth();
+  const isSuper = user?.role === 'SUPER_ADMIN';
 
   const fetchData = useCallback(async () => {
     const [
@@ -132,6 +136,19 @@ export default function AdminDashboard() {
 
   const hasAnalytics = !!(analytics || (searchTerms?.length ?? 0) > 0);
 
+  const handleClearAnalytics = async () => {
+    if (!confirm('Tüm arama istatistikleri silinecek. Emin misiniz?')) return;
+    setClearing(true);
+    try {
+      await api.clearAnalytics();
+      fetchData();
+    } catch (err: any) {
+      alert(err.message || 'Bir hata oluştu');
+    } finally {
+      setClearing(false);
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
@@ -139,9 +156,23 @@ export default function AdminDashboard() {
           <h1 className="text-2xl font-bold text-white">Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">Sisteme genel bakış</p>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-raised border border-white/[0.06] text-xs text-gray-500">
-          <Clock className="w-3.5 h-3.5" />
-          Canlı
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-raised border border-white/[0.06] text-xs text-gray-500">
+            <Clock className="w-3.5 h-3.5" />
+            Canlı
+          </div>
+          {isSuper && (
+            <button
+              onClick={handleClearAnalytics}
+              disabled={clearing}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                         text-rose-400 bg-rose-500/10 border border-rose-500/20
+                         hover:bg-rose-500/20 transition-all disabled:opacity-50"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {clearing ? 'Temizleniyor...' : 'İstatistikleri Sıfırla'}
+            </button>
+          )}
         </div>
       </div>
 

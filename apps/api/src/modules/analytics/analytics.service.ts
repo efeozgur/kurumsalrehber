@@ -206,4 +206,8 @@ export class AnalyticsService {
       favoritedAt: c.updatedAt,
     }));
   }
+
+  async clearAll() {
+    await this.prisma.searchLog.deleteMany();
+  }
 }

@@ -67,7 +67,10 @@ export const api = {
   deleteUser: (id: number) =>
     request(`/auth/users/${id}`, { method: 'DELETE' }),
 
-  getStats: () => request<any>('/admin/stats'),
+  getStats: async () => {
+    const res = await request<any>('/admin/stats');
+    return res.data ?? res;
+  },
 
   getAdminContacts: (page = 1, limit = 50, q?: string) => {
     const params = new URLSearchParams();
@@ -205,7 +208,10 @@ export const api = {
 
   getModules: () => request<any>('/admin/modules'),
 
-  getModuleStatus: (key: string) => request<any>(`/modules/${key}/status`),
+  getModuleStatus: async (key: string) => {
+    const res = await request<any>(`/modules/${key}/status`);
+    return res.data ?? res;
+  },
 
   updateModule: (id: number, enabled: boolean) =>
     request<any>(`/admin/modules/${id}`, {
@@ -266,17 +272,41 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
     }).catch(() => {}),
 
-  getAnalyticsSummary: () => request<any>('/admin/analytics/summary'),
+  getAnalyticsSummary: async () => {
+    const res = await request<any>('/admin/analytics/summary');
+    return res.data ?? res;
+  },
 
-  getAnalyticsSearchTerms: () => request<any>('/admin/analytics/search-terms'),
+  getAnalyticsSearchTerms: async () => {
+    const res = await request<any>('/admin/analytics/search-terms');
+    return res.data ?? res;
+  },
 
-  getAnalyticsTopContacts: () => request<any>('/admin/analytics/top-contacts'),
+  getAnalyticsTopContacts: async () => {
+    const res = await request<any>('/admin/analytics/top-contacts');
+    return res.data ?? res;
+  },
 
-  getAnalyticsUsageHourly: () => request<any>('/admin/analytics/usage-hourly'),
+  getAnalyticsUsageHourly: async () => {
+    const res = await request<any>('/admin/analytics/usage-hourly');
+    return res.data ?? res;
+  },
 
-  getAnalyticsUsageDaily: () => request<any>('/admin/analytics/usage-daily'),
+  getAnalyticsUsageDaily: async () => {
+    const res = await request<any>('/admin/analytics/usage-daily');
+    return res.data ?? res;
+  },
 
-  getAnalyticsNoResults: () => request<any>('/admin/analytics/no-results'),
+  getAnalyticsNoResults: async () => {
+    const res = await request<any>('/admin/analytics/no-results');
+    return res.data ?? res;
+  },
 
-  getAnalyticsFavStats: () => request<any>('/admin/analytics/fav-stats'),
+  getAnalyticsFavStats: async () => {
+    const res = await request<any>('/admin/analytics/fav-stats');
+    return res.data ?? res;
+  },
+
+  clearAnalytics: () =>
+    request('/admin/analytics/clear', { method: 'DELETE' }),
 };

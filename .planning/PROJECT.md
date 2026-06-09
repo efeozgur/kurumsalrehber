@@ -57,6 +57,7 @@ Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebili
 - **Admin Dashboard Güncellemesi:** 4 yeni analitik kartı (bugünkü arama, toplam arama, boş sonuç oranı, ortalama sonuç sayısı); saat bazlı bar chart; günlük kullanım area chart; en çok aranan terimler tablosu; en çok görüntülenen kişiler tablosu; boş sonuç dönen aramalar tablosu; en çok favorilenen kişiler tablosu
 - **Dashboard Auto-Refresh:** `window focus` event'i ile sayfaya dönüşte verilerin otomatik tazelenmesi
 - **Modül Durumu Entegrasyonu:** Modül pasif edilince backend `findToday()` null döndürür, public header'daki buton ve kartlar kaybolur, admin sidebar'daki link filtrelenir; `GET /api/modules/:key/status` public endpoint'i
+- **İstatistik Sıfırlama:** `DELETE /api/admin/analytics/clear` endpoint'i (sadece SUPER_ADMIN), admin dashboard'da "İstatistikleri Sıfırla" butonu, onay sonrası tüm SearchLog kayıtlarını siler ve dashboard'u otomatik yeniler
 
 ## Teknoloji
 
