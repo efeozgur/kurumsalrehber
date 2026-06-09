@@ -6,6 +6,12 @@ const config: Config = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  safelist: [
+    'theme-turuncu',
+    'theme-mavi',
+    'theme-mor',
+    'theme-lacivert',
+  ],
   theme: {
     extend: {
       colors: {

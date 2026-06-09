@@ -26,23 +26,23 @@
     --success: 142 65% 42%;
     --warning: 38 92% 50%;
   }
+}
 
-  .theme-sabah {}
-  .theme-ogle {
-    --brand-400: 213 94% 68%;
-    --brand-500: 213 94% 48%;
-    --brand-600: 213 93% 43%;
-  }
-  .theme-aksam {
-    --brand-400: 270 95% 75%;
-    --brand-500: 270 91% 65%;
-    --brand-600: 270 90% 58%;
-  }
-  .theme-gece {
-    --brand-400: 239 92% 74%;
-    --brand-500: 239 84% 67%;
-    --brand-600: 239 85% 58%;
-  }
+.theme-turuncu {}
+.theme-mavi {
+  --brand-400: 213 94% 68%;
+  --brand-500: 213 94% 48%;
+  --brand-600: 213 93% 43%;
+}
+.theme-mor {
+  --brand-400: 270 95% 75%;
+  --brand-500: 270 91% 65%;
+  --brand-600: 270 90% 58%;
+}
+.theme-lacivert {
+  --brand-400: 239 92% 74%;
+  --brand-500: 239 84% 67%;
+  --brand-600: 239 85% 58%;
 }
 
 @layer utilities {

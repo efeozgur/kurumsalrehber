@@ -49,10 +49,10 @@ export default function HomePage() {
   const { theme, setTheme } = useTheme();
 
   const themes: { id: Theme; label: string; colors: string }[] = [
-    { id: 'sabah', label: 'Sabah', colors: 'from-amber-500 to-orange-600' },
-    { id: 'ogle', label: 'Öğle', colors: 'from-blue-400 to-blue-600' },
-    { id: 'aksam', label: 'Akşam', colors: 'from-purple-400 to-purple-600' },
-    { id: 'gece', label: 'Gece', colors: 'from-indigo-400 to-indigo-600' },
+    { id: 'turuncu', label: 'Turuncu', colors: 'from-amber-500 to-orange-600' },
+    { id: 'mavi', label: 'Mavi', colors: 'from-blue-400 to-blue-600' },
+    { id: 'mor', label: 'Mor', colors: 'from-purple-400 to-purple-600' },
+    { id: 'lacivert', label: 'Lacivert', colors: 'from-indigo-400 to-indigo-600' },
   ];
 
   useEffect(() => {

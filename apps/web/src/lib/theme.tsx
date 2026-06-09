@@ -3,10 +3,17 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api } from './api';
 
-export type Theme = 'sabah' | 'ogle' | 'aksam' | 'gece';
+export type Theme = 'turuncu' | 'mavi' | 'mor' | 'lacivert';
 
 const THEME_KEY = 'theme';
-const DEFAULT_THEME: Theme = 'sabah';
+const DEFAULT_THEME: Theme = 'turuncu';
+
+const THEMES: Theme[] = ['turuncu', 'mavi', 'mor', 'lacivert'];
+
+function applyTheme(t: Theme) {
+  THEMES.forEach((th) => document.documentElement.classList.remove(`theme-${th}`));
+  document.documentElement.classList.add(`theme-${t}`);
+}
 
 interface ThemeContextType {
   theme: Theme;
@@ -20,19 +27,17 @@ const ThemeContext = createContext<ThemeContextType>({
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(DEFAULT_THEME);
-  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(THEME_KEY) as Theme | null;
     const initial = saved || DEFAULT_THEME;
     setThemeState(initial);
-    document.documentElement.className = `theme-${initial}`;
-    setLoaded(true);
+    applyTheme(initial);
     api.getSettings().then((res) => {
       const t = res?.data?.theme as Theme | undefined;
-      if (t && ['sabah', 'ogle', 'aksam', 'gece'].includes(t)) {
+      if (t && THEMES.includes(t)) {
         setThemeState(t);
-        document.documentElement.className = `theme-${t}`;
+        applyTheme(t);
         localStorage.setItem(THEME_KEY, t);
       }
     }).catch(() => {});
@@ -40,7 +45,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setTheme = (t: Theme) => {
     setThemeState(t);
-    document.documentElement.className = `theme-${t}`;
+    applyTheme(t);
     localStorage.setItem(THEME_KEY, t);
     api.updateSetting('theme', t).catch(() => {});
   };
