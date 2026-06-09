@@ -1,4 +1,4 @@
-# TelefonRehberi - Kurumsal Telefon Rehberi Sistemi
+# Burdur Adliyesi Telefon Rehberi
 
 ## Vizyon
 Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebilir bir telefon rehberi ve kurumsal bilgi sistemi. Modüler yapısı sayesinde yemek listesi, nöbet çizelgeleri gibi ek modüllerle zenginleştirilebilir.
@@ -34,6 +34,13 @@ Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebili
 - **Arama Sadeleştirme:** "Tüm Birimler" ve "Tüm Ünvanlar" dropdown'ları kaldırıldı; arama çubuğu + buton tek satır; API'ye `department.name` içinde arama eklendi
 - **Sık Kullanılanlar Bölümü:** Anasayfada arama yapılmamışsa favori kişiler "Sık Kullanılanlar" başlığıyla gösterilir; `getFavorites()` ile yüklenir; toggle sonrası state senkronize edilir
 - **İpucu Geçiş Hızı Ayarı:** `Setting` modeli (key/value), `SettingsModule` ile `GET/POST /api/admin/settings`, admin ipuçları sayfasında hız inputu (ms), anasayfada `tipSpeed` değeri okunur; varsayılan 4000ms
+- **İpuçlarını Göster/Gizle:** Admin ipuçları sayfasında toggle anahtarı; kapalıyken hız ayarı gizlenir, anasayfada ipucu carousel'i gösterilmez
+
+### Phase 4 — Tema Sistemi & İyileştirmeler (Tamamlandı)
+- **Anasayfada Düzenle/Sil:** Giriş yapmış admin kullanıcıları için grid/liste görünümünde kişi kartlarında düzenle ve sil butonları; SUPER_ADMIN silme yetkisi, ADMIN sadece düzenleme; favoriler bölümünde butonlar gösterilmez
+- **Arama Geçmişi Kırpılma Düzeltmesi:** Hero wrapper'daki `overflow-hidden` dekorasyon elemanlarına özel bir kapsayıcıya taşındı, dropdown artık kırpılmıyor
+- **Tema Sistemi:** Kullanıcının seçimine bağlı 4 tema (Turuncu, Mavi, Mor, Lacivert); brand rengi, hero gradient, butonlar, glow efektleri CSS değişkenleri ile tema class'ına göre değişir; `ThemeProvider` context ile localStorage + API'ye kaydedilir; tüm sayfalarda geçerlidir
+- **Burdur Adliyesi Telefon Rehberi:** Tüm "Telefon Rehberi" referansları "Burdur Adliyesi Telefon Rehberi" olarak güncellendi
 
 ## Teknoloji
 
@@ -44,7 +51,7 @@ Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebili
 | Veritabanı | SQLite |
 | Auth | JWT (access token, role-based guards) |
 | Monorepo | Turborepo + pnpm |
-| UI | Custom TailwindCSS (koyu tema, turuncu aksan) |
+| UI | Custom TailwindCSS (koyu tema, 4 renk teması seçeneği) |
 | Grafikler | Recharts (PieChart, BarChart) |
 | Import | SheetJS (xlsx) — CSV/Excel ayrıştırma |
 | Export | SheetJS — XLSX/CSV oluşturma |
@@ -54,6 +61,7 @@ Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebili
 - **MVP:** Tamamlandı
 - **Phase 2 (Gelişmiş Özellikler):** Tamamlandı (Tüm Task 1.x ve 2.x)
 - **Phase 3 (İyileştirmeler):** Tamamlandı
+- **Phase 4 (Tema Sistemi & İyileştirmeler):** Tamamlandı
 - **Sonraki Fazlar:** Planlama aşamasında
 
 ## Dizin Yapısı
@@ -88,7 +96,8 @@ TelefonRehberi/
 │       │   │   └── page.tsx        # Public arama (favori + tarihçe + fuzzy)
 │       │   ├── lib/
 │       │   │   ├── api.ts
-│       │   │   └── auth.tsx
+│       │   │   ├── auth.tsx
+│       │   │   └── theme.tsx
 │       │   └── types/
 │       └── ...
 ├── .planning/
