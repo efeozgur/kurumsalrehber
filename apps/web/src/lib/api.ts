@@ -25,11 +25,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  searchContacts: (q?: string, departmentId?: number, page = 1, limit = 20, titleId?: number) => {
+  searchContacts: (q?: string, departmentId?: number, page = 1, limit = 20, titleId?: number, fav?: boolean) => {
     const params = new URLSearchParams();
     if (q) params.set('q', q);
     if (departmentId) params.set('departmentId', String(departmentId));
     if (titleId) params.set('titleId', String(titleId));
+    if (fav) params.set('fav', 'true');
     params.set('page', String(page));
     params.set('limit', String(limit));
     return request<any>(`/contacts/search?${params}`);
@@ -38,6 +39,8 @@ export const api = {
   getContact: (id: number) => request<any>(`/contacts/${id}`),
 
   getDepartments: () => request<any>('/departments'),
+
+  getDepartmentTree: () => request<any>('/departments/tree'),
 
   login: (username: string, password: string) =>
     request<any>('/auth/login', {
@@ -89,16 +92,16 @@ export const api = {
   deleteContact: (id: number) =>
     request(`/admin/contacts/${id}`, { method: 'DELETE' }),
 
-  createDepartment: (name: string) =>
+  createDepartment: (name: string, parentId?: number) =>
     request('/admin/departments', {
       method: 'POST',
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, parentId }),
     }),
 
-  updateDepartment: (id: number, name: string) =>
+  updateDepartment: (id: number, name: string, parentId?: number) =>
     request(`/admin/departments/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, parentId }),
     }),
 
   deleteDepartment: (id: number) =>
@@ -131,6 +134,58 @@ export const api = {
 
   deleteTip: (id: number) =>
     request(`/admin/tips/${id}`, { method: 'DELETE' }),
+
+  exportContacts: async (format: 'xlsx' | 'csv' = 'xlsx') => {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/admin/contacts/export?format=${format}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: 'Dışa aktarma hatası' }));
+      throw new Error(err.message);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kisiler.${format}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
+  toggleFavorite: (id: number) =>
+    request<any>(`/contacts/${id}/favorite`, { method: 'PATCH' }),
+
+  getFavorites: (page = 1, limit = 20) => {
+    const params = new URLSearchParams();
+    params.set('page', String(page));
+    params.set('limit', String(limit));
+    return request<any>(`/contacts/fav/list?${params}`);
+  },
+
+  importContacts: async (file: File) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_BASE}/admin/contacts/import`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: 'İçe aktarma hatası' }));
+      throw new Error(err.message);
+    }
+    return res.json();
+  },
+
+  getSettings: () => request<any>('/admin/settings'),
+
+  updateSetting: (key: string, value: string) =>
+    request<any>('/admin/settings', {
+      method: 'POST',
+      body: JSON.stringify({ key, value }),
+    }),
 
   uploadFile: async (file: File) => {
     const token = localStorage.getItem('token');

@@ -27,17 +27,44 @@ export class DepartmentsService {
     return department;
   }
 
-  async create(name: string) {
+  async getTree() {
+    const departments = await this.prisma.department.findMany({
+      include: {
+        _count: { select: { contacts: true } },
+        children: { include: { _count: { select: { contacts: true } } } },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    const buildTree = (parentId: number | null): any[] => {
+      return departments
+        .filter((d) => d.parentId === parentId)
+        .map((d) => ({
+          id: d.id,
+          name: d.name,
+          parentId: d.parentId,
+          contactCount: d._count.contacts,
+          children: buildTree(d.id),
+        }));
+    };
+
+    return buildTree(null);
+  }
+
+  async create(name: string, parentId?: number) {
     const existing = await this.prisma.department.findUnique({
       where: { name },
     });
     if (existing) {
       throw new ConflictException('Bu birim adı zaten kayıtlı');
     }
-    return this.prisma.department.create({ data: { name } });
+    if (parentId) {
+      await this.findOne(parentId);
+    }
+    return this.prisma.department.create({ data: { name, parentId: parentId || null } });
   }
 
-  async update(id: number, name: string) {
+  async update(id: number, name: string, parentId?: number) {
     await this.findOne(id);
     const existing = await this.prisma.department.findUnique({
       where: { name },
@@ -45,9 +72,12 @@ export class DepartmentsService {
     if (existing && existing.id !== id) {
       throw new ConflictException('Bu birim adı zaten kayıtlı');
     }
+    if (parentId) {
+      await this.findOne(parentId);
+    }
     return this.prisma.department.update({
       where: { id },
-      data: { name },
+      data: { name, parentId: parentId || null },
     });
   }
 
@@ -56,6 +86,12 @@ export class DepartmentsService {
     if (department._count.contacts > 0) {
       throw new ConflictException(
         'Bu birime bağlı kişiler var. Önce kişileri taşıyın veya silin.',
+      );
+    }
+    const childCount = await this.prisma.department.count({ where: { parentId: id } });
+    if (childCount > 0) {
+      throw new ConflictException(
+        'Bu birime bağlı alt birimler var. Önce alt birimleri taşıyın veya silin.',
       );
     }
     await this.prisma.department.delete({ where: { id } });

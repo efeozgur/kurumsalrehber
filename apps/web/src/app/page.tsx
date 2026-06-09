@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { Contact, Department } from '@/types';
 import {
-  Search, Grid3X3, List, Building2, Phone, Mail, ChevronDown, User,
-  ArrowRight, Sparkles, ChevronLeft, ChevronRight, X, Users, BadgeCheck, Lightbulb,
+  Search, Grid3X3, List, Building2, Phone, Mail, User,
+  ArrowRight, Sparkles, ChevronLeft, ChevronRight, X, Users, BadgeCheck, Lightbulb, Star, Clock, Trash2, LayoutDashboard,
 } from 'lucide-react';
 
 function getInitials(f: string, l: string) { return `${f.charAt(0)}${l.charAt(0)}`.toUpperCase(); }
@@ -24,20 +25,49 @@ function getAvatarColor(name: string) {
 }
 
 export default function HomePage() {
+  const { isAuthenticated, user, loading: authLoading } = useAuth();
   const [query, setQuery] = useState('');
   const [departmentId, setDepartmentId] = useState<number>(0);
+  const [titleId, setTitleId] = useState<number>(0);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [titles, setTitles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searched, setSearched] = useState(false);
+  const [showFav, setShowFav] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('search_history');
+      if (stored) setSearchHistory(JSON.parse(stored));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowHistory(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  // Favorites state
+  const [favorites, setFavorites] = useState<Contact[]>([]);
+  const [favsLoading, setFavsLoading] = useState(true);
 
   // Tips state
   const [tips, setTips] = useState<any[]>([]);
   const [activeTip, setActiveTip] = useState(0);
+  const [tipSpeed, setTipSpeed] = useState(4000);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -50,10 +80,17 @@ export default function HomePage() {
 
   useEffect(() => {
     api.getDepartments().then((res) => setDepartments(res.data));
+    api.getTitles().then((res) => setTitles(res.data));
     api.getTips().then((res) => {
       const data = res.data ?? res;
       setTips(Array.isArray(data) ? data : []);
     });
+    api.getSettings().then((res) => {
+      if (res?.data?.tipSpeed) setTipSpeed(Number(res.data.tipSpeed));
+    }).catch(() => {});
+    api.getFavorites(1, 50).then((res) => {
+      setFavorites(res.data);
+    }).catch(() => {}).finally(() => setFavsLoading(false));
   }, []);
 
   // Auto-rotate tips
@@ -61,9 +98,9 @@ export default function HomePage() {
     if (tips.length < 2) return;
     const timer = setInterval(() => {
       setActiveTip((prev) => (prev + 1) % tips.length);
-    }, 4000);
+    }, tipSpeed);
     return () => clearInterval(timer);
-  }, [tips.length]);
+  }, [tips.length, tipSpeed]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -74,9 +111,19 @@ export default function HomePage() {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  const handleSearch = async (p = 1) => {
-    const trimmed = (query ?? '').trim();
-    if (trimmed.length > 0 && trimmed.length < 2) return;
+  const addToHistory = (q: string) => {
+    if (!q.trim()) return;
+    setSearchHistory((prev) => {
+      const filtered = prev.filter((s) => s !== q);
+      const next = [q, ...filtered].slice(0, 10);
+      localStorage.setItem('search_history', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const doSearch = async (q: string, p = 1) => {
+    const trimmed = q.trim();
+    if (trimmed && trimmed.length < 2) return;
     if (!trimmed && departmentId === 0) {
       setContacts([]);
       setSearched(false);
@@ -84,11 +131,13 @@ export default function HomePage() {
       setTotalPages(1);
       return;
     }
+    setShowHistory(false);
+    addToHistory(trimmed);
     setLoading(true);
     setSearched(true);
     setPage(p);
     try {
-      const res = await api.searchContacts(query || undefined, departmentId || undefined, p, 20);
+      const res = await api.searchContacts(trimmed || undefined, departmentId || undefined, p, 20, titleId || undefined, showFav || undefined);
       setContacts(res.data);
       setTotalPages(res.meta.totalPages);
       setTotal(res.meta.total);
@@ -99,6 +148,8 @@ export default function HomePage() {
       setLoading(false);
     }
   };
+
+  const handleSearch = (p = 1) => doSearch(query, p);
 
   const openModal = useCallback(async (type: 'title' | 'department', id: number, name: string) => {
     setModalType(type);
@@ -119,6 +170,24 @@ export default function HomePage() {
       setModalLoading(false);
     }
   }, []);
+
+  const toggleFav = async (id: number) => {
+    try {
+      const updated = await api.toggleFavorite(id);
+      setContacts((prev) =>
+        showFav && !updated.data.isFav
+          ? prev.filter((c) => c.id !== id)
+          : prev.map((c) => c.id === id ? { ...c, isFav: updated.data.isFav } : c)
+      );
+      setFavorites((prev) =>
+        updated.data.isFav
+          ? prev.some((c) => c.id === id) ? prev : [...prev, updated.data]
+          : prev.filter((c) => c.id !== id)
+      );
+    } catch (err) {
+      console.error('Favori değiştirme hatası:', err);
+    }
+  };
 
   const closeModal = () => {
     setModalOpen(false);
@@ -242,16 +311,28 @@ export default function HomePage() {
                 <p className="text-xs text-gray-500">Kurumsal İletişim</p>
               </div>
             </div>
-            <a
-              href="/admin/login"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-gray-300
-                         border border-white/[0.08] hover:border-brand-500/30 hover:text-brand-400
-                         hover:bg-brand-500/5 transition-all duration-200"
-            >
-              <User className="w-4 h-4" />
-              Admin
-              <ArrowRight className="w-3 h-3" />
-            </a>
+            {isAuthenticated ? (
+              <a
+                href="/admin"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium
+                           bg-brand-500/15 text-brand-400 border border-brand-500/30
+                           hover:bg-brand-500/20 hover:text-brand-300 transition-all duration-200"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Admin Panel
+              </a>
+            ) : (
+              <a
+                href="/admin/login"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-gray-300
+                           border border-white/[0.08] hover:border-brand-500/30 hover:text-brand-400
+                           hover:bg-brand-500/5 transition-all duration-200"
+              >
+                <User className="w-4 h-4" />
+                Admin Giriş
+                <ArrowRight className="w-3 h-3" />
+              </a>
+            )}
           </div>
 
           {/* Hero Content */}
@@ -269,32 +350,40 @@ export default function HomePage() {
 
             {/* Search Card */}
             <div className="max-w-3xl mx-auto">
-              <div className="glass rounded-2xl p-2 glow-card">
+              <div className="glass rounded-2xl p-2 glow-card relative z-10">
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <div className="flex-1 relative">
+                  <div className="flex-1 relative" ref={searchRef}>
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                     <input
                       type="text"
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
+                      onFocus={() => searchHistory.length > 0 && setShowHistory(true)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch(1)}
-                      placeholder="Ad, soyad, telefon veya email..."
+                      placeholder="Ad, soyad, ünvan, birim veya telefon..."
                       className="w-full pl-12 pr-4 py-4 bg-transparent border-none text-white placeholder-gray-600 focus:outline-none text-base"
                     />
-                  </div>
-                  <div className="relative sm:w-44">
-                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
-                    <select
-                      value={departmentId}
-                      onChange={(e) => setDepartmentId(Number(e.target.value))}
-                      className="w-full pl-10 pr-8 py-4 bg-surface-raised/50 border border-white/[0.06] rounded-xl text-white text-sm appearance-none cursor-pointer hover:bg-surface-hover/50 transition-colors focus:outline-none focus:border-brand-500/30"
-                    >
-                      <option value={0} className="bg-surface">Tüm Birimler</option>
-                      {departments.map((d) => (
-                        <option key={d.id} value={d.id} className="bg-surface">{d.name}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                    {showHistory && searchHistory.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 rounded-xl bg-surface-card border border-white/[0.08] shadow-2xl z-50 overflow-hidden">
+                        <div className="px-3 py-2 text-[10px] uppercase tracking-wider text-gray-600 font-medium">Son Aramalar</div>
+                        {searchHistory.map((s, i) => (
+                          <button
+                            key={i}
+                            onMouseDown={() => { setQuery(s); doSearch(s, 1); }}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/[0.03] transition-colors text-left"
+                          >
+                            <Clock className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
+                            <span className="truncate">{s}</span>
+                          </button>
+                        ))}
+                        <button
+                          onMouseDown={() => { setSearchHistory([]); localStorage.removeItem('search_history'); setShowHistory(false); }}
+                          className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-gray-600 hover:text-red-400 hover:bg-white/[0.03] transition-colors border-t border-white/[0.06]"
+                        >
+                          <Trash2 className="w-3 h-3" /> Geçmişi Temizle
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <button onClick={() => handleSearch(1)} className="btn-primary px-8 whitespace-nowrap flex items-center gap-2">
                     <Search className="w-4 h-4" />
@@ -347,6 +436,87 @@ export default function HomePage() {
 
       {/* Results */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        {/* Favorites Section */}
+        {!favsLoading && !searched && favorites.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-center gap-2 mb-5">
+              <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+              <h2 className="text-sm font-semibold text-white tracking-wide">Sık Kullanılanlar</h2>
+              <span className="text-xs text-gray-600">({favorites.length} kişi)</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {favorites.map((contact) => (
+                <div
+                  key={contact.id}
+                  className="group relative bg-surface-card rounded-2xl border border-white/[0.07] overflow-hidden
+                             hover:border-amber-500/30 hover:shadow-xl hover:shadow-amber-500/5
+                             transition-all duration-300 glow-card-hover"
+                >
+                  <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-amber-500/10 to-transparent pointer-events-none" />
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleFav(contact.id); }}
+                    className="absolute top-3 left-3 z-10 p-1.5 rounded-lg text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 transition-all"
+                  >
+                    <Star className="w-4 h-4 fill-amber-400" />
+                  </button>
+                  {contact.sicilNo && (
+                    <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm text-[10px] font-medium text-gray-400 border border-white/[0.06] tracking-wide">
+                      {contact.sicilNo}
+                    </span>
+                  )}
+                  <div className="relative px-5 pt-10 pb-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      {contact.avatar ? (
+                        <img src={contact.avatar} alt="" className="w-12 h-12 rounded-xl object-cover ring-2 ring-white/[0.08] flex-shrink-0" />
+                      ) : (
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getAvatarColor(contact.firstName + contact.lastName)} flex items-center justify-center text-white font-bold text-lg flex-shrink-0 ring-2 ring-white/[0.08]`}>
+                          {getInitials(contact.firstName, contact.lastName)}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="font-semibold text-white text-sm truncate group-hover:text-amber-400 transition-colors">
+                          {contact.firstName} {contact.lastName}
+                        </p>
+                        {contact.title?.name && (
+                          <p className="text-xs text-gray-500 truncate">{contact.title.name}</p>
+                        )}
+                      </div>
+                    </div>
+                    {contact.department && (
+                      <div className="mb-3">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/15 text-xs font-medium text-amber-400">
+                          <Building2 className="w-3 h-3" />
+                          {contact.department.name}
+                        </span>
+                      </div>
+                    )}
+                    <div className="space-y-1.5 pt-3 border-t border-white/[0.06]">
+                      {contact.phoneInternal && (
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-gray-600">Dahili</span>
+                          <span className="text-gray-300 font-medium">{contact.phoneInternal}</span>
+                        </div>
+                      )}
+                      {contact.phoneMobile && (
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-gray-600">Cep</span>
+                          <span className="text-gray-300 font-medium">{contact.phoneMobile}</span>
+                        </div>
+                      )}
+                      {contact.email && (
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-gray-600">E-posta</span>
+                          <span className="text-gray-300 font-medium truncate max-w-[180px]">{contact.email}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {searched && (
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -356,6 +526,17 @@ export default function HomePage() {
               <p className="text-sm text-gray-500">
                 <span className="text-white font-semibold">{total}</span> sonuç bulundu
               </p>
+              <button
+                onClick={() => { setShowFav(!showFav); if (!showFav) handleSearch(1); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  showFav
+                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                    : 'text-gray-500 hover:text-gray-300 border border-transparent'
+                }`}
+              >
+                <Star className={`w-3.5 h-3.5 ${showFav ? 'fill-amber-400' : ''}`} />
+                Favoriler
+              </button>
             </div>
             <div className="flex gap-1 p-1 rounded-xl bg-surface-raised border border-white/[0.06]">
               <button
@@ -415,6 +596,16 @@ export default function HomePage() {
               >
                 <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-brand-500/10 to-transparent pointer-events-none" />
 
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggleFav(contact.id); }}
+                  className={`absolute top-3 left-3 z-10 p-1.5 rounded-lg transition-all ${
+                    contact.isFav
+                      ? 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'
+                      : 'text-gray-600 hover:text-gray-400 hover:bg-white/5 opacity-0 group-hover:opacity-100'
+                  }`}
+                >
+                  <Star className={`w-4 h-4 ${contact.isFav ? 'fill-amber-400' : ''}`} />
+                </button>
                 {contact.sicilNo && (
                   <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm text-[10px] font-medium text-gray-400 border border-white/[0.06] tracking-wide">
                     {contact.sicilNo}
@@ -515,6 +706,16 @@ export default function HomePage() {
           <div className="glass rounded-2xl overflow-hidden divide-y divide-white/[0.06]">
             {contacts.map((contact) => (
               <div key={contact.id} className="flex items-center gap-5 px-6 py-5 hover:bg-white/[0.02] transition-colors group">
+                <button
+                  onClick={() => toggleFav(contact.id)}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    contact.isFav
+                      ? 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'
+                      : 'text-gray-600 hover:text-gray-400 hover:bg-white/5'
+                  }`}
+                >
+                  <Star className={`w-4 h-4 ${contact.isFav ? 'fill-amber-400' : ''}`} />
+                </button>
                 {contact.avatar ? (
                   <img src={contact.avatar} alt="" className="w-14 h-14 rounded-xl object-cover ring-2 ring-white/5 flex-shrink-0" />
                 ) : (

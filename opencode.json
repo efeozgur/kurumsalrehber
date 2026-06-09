@@ -15,6 +15,11 @@
       "model": "anthropic/claude-sonnet-4-6",
       "description": "Proje yönetimi ve planlama uzmanı - fazlara bölme, görev dağıtımı",
       "mode": "subagent"
+    },
+    "tester": {
+      "model": "anthropic/claude-sonnet-4-6",
+      "description": "Projeyi test eden ajan - uygulamayı başlatır, tüm feature'ları test eder, sonuç raporlar",
+      "mode": "subagent"
     }
   }
 }

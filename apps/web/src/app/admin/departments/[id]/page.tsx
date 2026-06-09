@@ -10,6 +10,8 @@ export default function EditDepartmentPage() {
   const params = useParams();
   const id = Number(params.id);
   const [name, setName] = useState('');
+  const [parentId, setParentId] = useState<number | ''>('');
+  const [departments, setDepartments] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -17,7 +19,11 @@ export default function EditDepartmentPage() {
   useEffect(() => {
     api.getDepartments().then((res) => {
       const dept = res.data.find((d: any) => d.id === id);
-      if (dept) setName(dept.name);
+      if (dept) {
+        setName(dept.name);
+        setParentId(dept.parentId ?? '');
+      }
+      setDepartments(res.data.filter((d: any) => d.id !== id));
     }).catch(() => {}).finally(() => setLoading(false));
   }, [id]);
 
@@ -26,7 +32,7 @@ export default function EditDepartmentPage() {
     setSaving(true);
     setError('');
     try {
-      await api.updateDepartment(id, name);
+      await api.updateDepartment(id, name, parentId || undefined);
       router.push('/admin/departments');
     } catch (err: any) {
       setError(err.message);
@@ -72,13 +78,23 @@ export default function EditDepartmentPage() {
           </div>
           <div>
             <h3 className="font-medium text-white text-sm">Birim Bilgileri</h3>
-            <p className="text-xs text-gray-500">Birim adını güncelleyin</p>
+            <p className="text-xs text-gray-500">Birim adını ve üst birimi güncelleyin</p>
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">Birim Adı *</label>
           <input required value={name} onChange={(e) => setName(e.target.value)} className="input-field" placeholder="Birim adı" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-400 mb-2">Üst Birim</label>
+          <select value={parentId} onChange={(e) => setParentId(e.target.value ? Number(e.target.value) : '')} className="input-field">
+            <option value="">— Üst Birim Yok (Ana Birim) —</option>
+            {departments.map((d: any) => (
+              <option key={d.id} value={d.id}>{d.name}</option>
+            ))}
+          </select>
         </div>
 
         <div className="flex gap-3 pt-2">

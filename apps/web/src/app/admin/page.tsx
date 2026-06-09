@@ -6,6 +6,9 @@ import { Stats } from '@/types';
 import {
   Users, Building2, UserCog, Phone, TrendingUp, ArrowUpRight, ArrowDownRight, Clock, Sparkles,
 } from 'lucide-react';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+
+const COLORS = ['#f97316', '#10b981', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4', '#84cc16', '#e11d48', '#6366f1', '#14b8a6'];
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -56,6 +59,9 @@ export default function AdminDashboard() {
     },
   ];
 
+  const deptData = stats?.departmentDistribution?.filter((d) => d.value > 0) || [];
+  const titleData = stats?.titleDistribution?.filter((d) => d.value > 0) || [];
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
@@ -97,7 +103,7 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="glass rounded-2xl overflow-hidden">
           <div className="px-6 py-5 border-b border-white/[0.06] flex items-center justify-between">
             <h2 className="font-semibold text-white flex items-center gap-2 text-sm">
@@ -130,6 +136,71 @@ export default function AdminDashboard() {
               ))
             ) : (
               <div className="text-center py-12 text-gray-500 text-sm">Henüz kişi eklenmemiş</div>
+            )}
+          </div>
+        </div>
+
+        <div className="glass rounded-2xl overflow-hidden">
+          <div className="px-6 py-5 border-b border-white/[0.06]">
+            <h2 className="font-semibold text-white flex items-center gap-2 text-sm">
+              <Building2 className="w-4 h-4 text-emerald-400" />
+              Birim Bazında Dağılım
+            </h2>
+          </div>
+          <div className="p-6">
+            {deptData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie data={deptData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} innerRadius={50} paddingAngle={3}>
+                    {deptData.map((_, i) => (
+                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', color: '#fff' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-center text-gray-500 text-sm py-8">Henüz veri yok</p>
+            )}
+            {deptData.length > 0 && (
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                {deptData.map((d, i) => (
+                  <div key={d.name} className="flex items-center gap-2 text-xs text-gray-400">
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                    <span className="truncate">{d.name}</span>
+                    <span className="ml-auto text-white font-medium">{d.value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="glass rounded-2xl overflow-hidden">
+          <div className="px-6 py-5 border-b border-white/[0.06]">
+            <h2 className="font-semibold text-white flex items-center gap-2 text-sm">
+              <Sparkles className="w-4 h-4 text-brand-400" />
+              Ünvan Bazında Dağılım
+            </h2>
+          </div>
+          <div className="p-6">
+            {titleData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={titleData}>
+                  <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', color: '#fff' }} />
+                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                    {titleData.map((_, i) => (
+                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-center text-gray-500 text-sm py-8">Henüz veri yok</p>
             )}
           </div>
         </div>

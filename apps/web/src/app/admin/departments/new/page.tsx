@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { ArrowLeft, Building2 } from 'lucide-react';
@@ -8,15 +8,21 @@ import { ArrowLeft, Building2 } from 'lucide-react';
 export default function NewDepartmentPage() {
   const router = useRouter();
   const [name, setName] = useState('');
+  const [parentId, setParentId] = useState<number | ''>('');
+  const [departments, setDepartments] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    api.getDepartments().then((res) => setDepartments(res.data)).catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setError('');
     try {
-      await api.createDepartment(name);
+      await api.createDepartment(name, parentId || undefined);
       router.push('/admin/departments');
     } catch (err: any) {
       setError(err.message);
@@ -51,13 +57,23 @@ export default function NewDepartmentPage() {
           </div>
           <div>
             <h3 className="font-medium text-white text-sm">Birim Bilgileri</h3>
-            <p className="text-xs text-gray-500">Birim adını girin</p>
+            <p className="text-xs text-gray-500">Birim adını ve üst birimi girin</p>
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">Birim Adı *</label>
           <input required value={name} onChange={(e) => setName(e.target.value)} className="input-field" placeholder="Örn: İnsan Kaynakları" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-400 mb-2">Üst Birim</label>
+          <select value={parentId} onChange={(e) => setParentId(e.target.value ? Number(e.target.value) : '')} className="input-field">
+            <option value="">— Üst Birim Yok (Ana Birim) —</option>
+            {departments.map((d: any) => (
+              <option key={d.id} value={d.id}>{d.name}</option>
+            ))}
+          </select>
         </div>
 
         <div className="flex gap-3 pt-2">

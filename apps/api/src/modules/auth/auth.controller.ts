@@ -12,6 +12,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto, SetupDto, CreateUserDto } from './dto/login.dto';
 import { Public } from '../../common/decorators/public.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Auth')
 @Controller('api/auth')
@@ -55,6 +56,7 @@ export class AuthController {
   }
 
   @ApiBearerAuth()
+  @Roles('SUPER_ADMIN')
   @Delete('users/:id')
   deleteUser(@Param('id') id: string) {
     return this.authService.deleteUser(+id);

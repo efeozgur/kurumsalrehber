@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { Title } from '@/types';
 import { Plus, Pencil, Trash2, BadgeCheck, Users } from 'lucide-react';
 
 export default function TitlesPage() {
+  const { user } = useAuth();
+  const isSuper = user?.role === 'SUPER_ADMIN';
   const [titles, setTitles] = useState<Title[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -86,12 +89,14 @@ export default function TitlesPage() {
                         <a href={`/admin/titles/${item.id}`} className="p-2 rounded-lg text-gray-500 hover:text-brand-400 hover:bg-brand-500/10 transition-all">
                           <Pencil className="w-4 h-4" />
                         </a>
-                        <button
-                          onClick={() => handleDelete(item.id, item.name)}
-                          className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {isSuper && (
+                          <button
+                            onClick={() => handleDelete(item.id, item.name)}
+                            className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

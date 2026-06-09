@@ -6,6 +6,7 @@ import { DepartmentsModule } from './modules/departments/departments.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { TitlesModule } from './modules/titles/titles.module';
 import { TipsModule } from './modules/tips/tips.module';
+import { SettingsModule } from './modules/settings/settings.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { TipsModule } from './modules/tips/tips.module';
     UploadModule,
     TitlesModule,
     TipsModule,
+    SettingsModule,
   ],
 })
 export class AppModule {}

@@ -5,6 +5,7 @@ import { IsString, IsNotEmpty } from 'class-validator';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { TitlesService } from './titles.service';
 import { Public } from '../../common/decorators/public.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 class CreateTitleDto {
   @IsString()
@@ -36,6 +37,7 @@ export class TitlesController {
   }
 
   @ApiBearerAuth()
+  @Roles('SUPER_ADMIN')
   @Delete('api/admin/titles/:id')
   remove(@Param('id') id: string) {
     return this.titlesService.remove(+id);

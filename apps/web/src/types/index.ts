@@ -51,4 +51,6 @@ export interface Stats {
   departmentCount: number;
   userCount: number;
   recentContacts: Contact[];
+  departmentDistribution: { name: string; value: number }[];
+  titleDistribution: { name: string; value: number }[];
 }

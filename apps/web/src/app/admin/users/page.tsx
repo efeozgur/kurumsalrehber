@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { User } from '@/types';
 import { Plus, Trash2, UserCog, Shield } from 'lucide-react';
 
 export default function UsersPage() {
+  const { user: currentUser } = useAuth();
+  const isSuper = currentUser?.role === 'SUPER_ADMIN';
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -52,9 +55,11 @@ export default function UsersPage() {
           <h1 className="text-2xl font-bold text-white">Kullanıcılar</h1>
           <p className="text-sm text-gray-500 mt-1">Sistem yöneticileri</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="btn-primary flex items-center gap-2 text-sm">
-          <Plus className="w-4 h-4" /> Yeni Kullanıcı
-        </button>
+        {isSuper && (
+          <button onClick={() => setShowForm(!showForm)} className="btn-primary flex items-center gap-2 text-sm">
+            <Plus className="w-4 h-4" /> Yeni Kullanıcı
+          </button>
+        )}
       </div>
 
       {showForm && (
@@ -131,9 +136,11 @@ export default function UsersPage() {
                     {new Date(user.createdAt).toLocaleDateString('tr-TR')}
                   </td>
                   <td className="px-5 py-3.5 text-right">
-                    <button onClick={() => handleDelete(user.id, user.username)} className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {isSuper && (
+                      <button onClick={() => handleDelete(user.id, user.username)} className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

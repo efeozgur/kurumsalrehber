@@ -2,17 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { Plus, Trash2, Lightbulb, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Lightbulb, Timer, ChevronLeft, ChevronRight, Save } from 'lucide-react';
 
 export default function TipsPage() {
   const [tips, setTips] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tipSpeed, setTipSpeed] = useState('4000');
+  const [speedSaved, setSpeedSaved] = useState(false);
 
   const loadTips = async () => {
     setLoading(true);
     try {
-      const res = await api.getTips();
-      setTips(res.data ?? res);
+      const [tipsRes, settingsRes] = await Promise.all([
+        api.getTips(),
+        api.getSettings(),
+      ]);
+      setTips(tipsRes.data ?? tipsRes);
+      if (settingsRes?.data?.tipSpeed) setTipSpeed(settingsRes.data.tipSpeed);
     } catch {
       setTips([]);
     } finally {
@@ -32,6 +38,19 @@ export default function TipsPage() {
     }
   };
 
+  const handleSpeedSave = async () => {
+    const val = parseInt(tipSpeed, 10);
+    if (isNaN(val) || val < 500) { alert('En az 500 ms olabilir'); return; }
+    try {
+      const res = await api.updateSetting('tipSpeed', String(val));
+      if (res?.data?.value) setTipSpeed(res.data.value);
+      setSpeedSaved(true);
+      setTimeout(() => setSpeedSaved(false), 2000);
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -43,6 +62,39 @@ export default function TipsPage() {
           <Plus className="w-4 h-4" />
           Yeni İpucu
         </a>
+      </div>
+
+      {/* Speed Setting */}
+      <div className="glass rounded-2xl p-5 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+              <Timer className="w-5 h-5 text-amber-400" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-white">İpucu Geçiş Hızı</h3>
+              <p className="text-xs text-gray-500 mt-0.5">İpuçlarının otomatik geçiş süresi (milisaniye)</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              value={tipSpeed}
+              onChange={(e) => setTipSpeed(e.target.value)}
+              className="w-28 px-4 py-2.5 rounded-xl bg-surface-raised border border-white/[0.08] text-white text-sm text-center focus:border-brand-500/30 focus:ring-2 focus:ring-brand-500/10 outline-none transition-all"
+              min={500}
+              step={500}
+            />
+            <button onClick={handleSpeedSave} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              speedSaved
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                : 'bg-brand-500/15 text-brand-400 border border-brand-500/30 hover:bg-brand-500/20'
+            }`}>
+              <Save className="w-4 h-4" />
+              {speedSaved ? 'Kaydedildi' : 'Kaydet'}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="glass rounded-2xl overflow-hidden">
