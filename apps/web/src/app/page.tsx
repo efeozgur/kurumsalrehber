@@ -323,8 +323,8 @@ export default function HomePage() {
                 <Phone className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-white tracking-tight">Telefon Rehberi</h1>
-                <p className="text-xs text-gray-500">Kurumsal İletişim</p>
+                <h1 className="text-lg font-bold text-white tracking-tight">Burdur Adliyesi</h1>
+                <p className="text-xs text-gray-500">Telefon Rehberi</p>
               </div>
             </div>
             {isAuthenticated ? (
@@ -355,7 +355,7 @@ export default function HomePage() {
           <div className="text-center py-16 md:py-24">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium mb-6">
               <Sparkles className="w-3.5 h-3.5" />
-              Kurumsal İletişim Platformu
+              Burdur Adliyesi Personel Bilgi Sistemi
             </div>
             <h2 className="text-4xl sm:text-6xl font-bold mb-4 tracking-tight leading-tight">
               <span className="text-gradient-hero">Personel Ara</span>
@@ -596,7 +596,7 @@ export default function HomePage() {
             <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-brand-500/10 to-brand-600/5 border border-brand-500/10 flex items-center justify-center mx-auto mb-8">
               <Phone className="w-9 h-9 text-brand-400/60" />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">Telefon Rehberi</h3>
+            <h3 className="text-xl font-semibold text-white mb-2">Burdur Adliyesi Telefon Rehberi</h3>
             <p className="text-gray-500">Yukarıdaki arama çubuğunu kullanarak kişileri görüntüleyebilirsiniz</p>
           </div>
         )}

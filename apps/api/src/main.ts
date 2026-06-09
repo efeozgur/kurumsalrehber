@@ -31,8 +31,8 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('Telefon Rehberi API')
-    .setDescription('Kurumsal Telefon Rehberi Sistemi')
+    .setTitle('Burdur Adliyesi Telefon Rehberi API')
+    .setDescription('Burdur Adliyesi Telefon Rehberi Sistemi')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -42,7 +42,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
-  console.log(`Telefon Rehberi API http://localhost:${port} adresinde çalışıyor`);
+  console.log(`Burdur Adliyesi Telefon Rehberi API http://localhost:${port} adresinde çalışıyor`);
   console.log(`Swagger dokümantasyonu http://localhost:${port}/api/docs`);
 }
 bootstrap();

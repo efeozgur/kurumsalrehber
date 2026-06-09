@@ -82,7 +82,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Phone className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="font-semibold text-white text-sm">Telefon Rehberi</p>
+              <p className="font-semibold text-white text-sm">Burdur Adliyesi</p>
               <p className="text-xs text-gray-500">Admin Paneli</p>
             </div>
           </div>

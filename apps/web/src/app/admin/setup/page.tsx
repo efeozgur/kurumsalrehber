@@ -66,7 +66,7 @@ export default function SetupPage() {
             <Phone className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Telefon Rehberi</h1>
+            <h1 className="text-xl font-bold text-white">Burdur Adliyesi</h1>
             <p className="text-sm text-gray-500">Kurulum</p>
           </div>
         </div>

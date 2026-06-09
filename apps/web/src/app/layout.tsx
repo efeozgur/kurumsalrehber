@@ -3,8 +3,8 @@ import { AuthProvider } from '@/lib/auth';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Telefon Rehberi',
-  description: 'Kurumsal Telefon Rehberi Sistemi',
+  title: 'Burdur Adliyesi Telefon Rehberi',
+  description: 'Burdur Adliyesi Telefon Rehberi Sistemi',
 };
 
 export default function RootLayout({
