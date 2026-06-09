@@ -50,6 +50,14 @@ Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebili
 - **Yemek Listesi Public:** `/meal-plans` sayfasında haftalık kart görünümü; anasayfada "Bugünün Yemeği" kartı (hero içinde animasyonlu taşınma, admin toggle ile açılıp kapatılabilir)
 - **FoodItem Havuzu:** Çorba/ana yemek/salata kategorilerinde önceden tanımlı yemek listesi (14 varsayılan yemek seed'li), admin ekleme/silme
 
+### Phase 6 — Genişletilmiş İstatistik Dashboard (Tamamlandı)
+- **SearchLog Modeli:** `SearchLog` Prisma modeli (query/departmentId/titleId/contactId/resultCount/source/createdAt) ile arama, görüntüleme ve export logları; demo seed verisi (127 kayıt, son 30 güne yayılmış)
+- **Backend Analytics API:** `AnalyticsModule` ile 8 endpoint — log kaydı (search/view/export) + dashboard analitik (summary, en çok aranan terimler, en çok görüntülenen kişiler, saatlik/günlük kullanım, boş sonuç dönen aramalar, en çok favorilenen kişiler)
+- **Log Entegrasyonu:** Public search, admin list, kişi görüntüleme ve export işlemlerine otomatik log kaydı (arka planda, kullanıcı deneyimini etkilemez)
+- **Admin Dashboard Güncellemesi:** 4 yeni analitik kartı (bugünkü arama, toplam arama, boş sonuç oranı, ortalama sonuç sayısı); saat bazlı bar chart; günlük kullanım area chart; en çok aranan terimler tablosu; en çok görüntülenen kişiler tablosu; boş sonuç dönen aramalar tablosu; en çok favorilenen kişiler tablosu
+- **Dashboard Auto-Refresh:** `window focus` event'i ile sayfaya dönüşte verilerin otomatik tazelenmesi
+- **Modül Durumu Entegrasyonu:** Modül pasif edilince backend `findToday()` null döndürür, public header'daki buton ve kartlar kaybolur, admin sidebar'daki link filtrelenir; `GET /api/modules/:key/status` public endpoint'i
+
 ## Teknoloji
 
 | Katman | Teknoloji |
@@ -60,7 +68,7 @@ Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebili
 | Auth | JWT (access token, role-based guards) |
 | Monorepo | Turborepo + pnpm |
 | UI | Custom TailwindCSS (koyu tema, 4 renk teması seçeneği) |
-| Grafikler | Recharts (PieChart, BarChart) |
+| Grafikler | Recharts (PieChart, BarChart, AreaChart, BarChart) |
 | Import | SheetJS (xlsx) — CSV/Excel ayrıştırma |
 | Export | SheetJS — XLSX/CSV oluşturma |
 
@@ -71,7 +79,8 @@ Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebili
 - **Phase 3 (İyileştirmeler):** Tamamlandı
 - **Phase 4 (Tema Sistemi & İyileştirmeler):** Tamamlandı
 - **Phase 5 (Modül Altyapısı & Yemek Listesi):** Tamamlandı
-- **Sonraki Fazlar:** Planlama aşamasında (Nöbet Çizelgeleri)
+- **Phase 6 (Genişletilmiş İstatistik Dashboard):** Tamamlandı
+- **Sonraki Fazlar:** Planlama aşamasında
 
 ## Dizin Yapısı
 
@@ -85,16 +94,19 @@ TelefonRehberi/
 │   │   ├── src/
 │   │   │   ├── common/
 │   │   │   │   ├── decorators/     # @Public, @Roles
-│   │   │   │   └── guards/         # JwtAuthGuard, RolesGuard
+│   │   │   │   ├── filters/        # HttpExceptionFilter
+│   │   │   │   ├── guards/         # JwtAuthGuard, RolesGuard
+│   │   │   │   └── interceptors/   # TransformInterceptor
 │   │   │   ├── modules/
+│   │   │   │   ├── analytics/      # SearchLog + dashboard istatistikleri
 │   │   │   │   ├── auth/           # JWT giriş/kayıt/kullanıcı yönetimi
 │   │   │   │   ├── contacts/       # Kişi CRUD + arama + import/export + favori
 │   │   │   │   ├── departments/    # Birim CRUD + hiyerarşik ağaç
 │   │   │   │   ├── titles/         # Ünvan CRUD
 │   │   │   │   ├── tips/           # İpucu CRUD
 │   │   │   │   ├── settings/       # Sistem ayarları (ipucu hızı, tema, yemek toggle)
-│   │   │   │   ├── modules/        # Modül yönetimi (aktif/pasif)
-│   │   │   │   ├── meal-plans/     # Haftalık yemek listesi CRUD
+│   │   │   │   ├── modules/        # Modül yönetimi (aktif/pasif) + public status endpoint
+│   │   │   │   ├── meal-plans/     # Haftalık yemek listesi CRUD (modül kontrollü)
 │   │   │   │   ├── food-items/     # Yemek havuzu (çorba/ana yemek/salata)
 │   │   │   │   └── upload/         # Dosya yükleme
 │   │   │   └── seed.ts
@@ -111,7 +123,8 @@ TelefonRehberi/
 │       │   │   ├── api.ts
 │       │   │   ├── auth.tsx
 │       │   │   └── theme.tsx
-│       │   └── types/
+│       │   ├── types/
+│       │   │   └── index.ts         # Stats, AnalyticsSummary, SearchTerm, TopContactView, vb.
 │       └── ...
 ├── .planning/
 │   ├── PROJECT.md
