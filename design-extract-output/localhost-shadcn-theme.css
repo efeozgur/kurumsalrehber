@@ -1,0 +1,19 @@
+/* shadcn/ui Theme — extracted from https://localhost:7023/KisitliKisiBilgileri/Details/105 */
+/* Paste into your globals.css */
+
+@layer base {
+  :root {
+    --background: 210 17% 98%;
+    --foreground: 0 0% 0%;
+    --primary: 216 98% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 45 100% 51%;
+    --secondary-foreground: 0 0% 0%;
+    --accent: 190 90% 50%;
+    --accent-foreground: 0 0% 100%;
+    --muted: 220 21% 39%;
+    --muted-foreground: 218 23% 23%;
+    --border: 215 16% 47%;
+    --radius: 6px;
+  }
+}

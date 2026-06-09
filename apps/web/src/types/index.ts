@@ -96,3 +96,27 @@ export interface FavStat {
   title: string | null;
   favoritedAt: string;
 }
+
+export interface BankAccount {
+  id: number;
+  bankName: string;
+  iban: string;
+  amount: number;
+  currency: string;
+  termType: string;
+  wardId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Ward {
+  id: number;
+  firstName: string;
+  lastName: string;
+  tcKimlikNo: string;
+  dosyaNo: string;
+  isRemoved: boolean;
+  createdAt: string;
+  updatedAt: string;
+  bankAccounts: BankAccount[];
+}

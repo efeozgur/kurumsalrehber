@@ -1,0 +1,42 @@
+{
+  "tone": "neutral",
+  "pronoun": "third-person",
+  "headingStyle": "Title Case",
+  "headingLengthClass": "tight",
+  "ctaVerbs": [
+    {
+      "value": "y",
+      "count": 1
+    },
+    {
+      "value": "hizli",
+      "count": 1
+    },
+    {
+      "value": "giri",
+      "count": 1
+    }
+  ],
+  "buttonPatterns": [
+    {
+      "value": "yönetici / yetkili girişi",
+      "count": 1
+    },
+    {
+      "value": "hizli menü",
+      "count": 1
+    },
+    {
+      "value": "giriş yap",
+      "count": 1
+    }
+  ],
+  "sampleHeadings": [
+    "Yönetici Girişi",
+    "Giriş Bilgileri"
+  ],
+  "stats": {
+    "buttons": 3,
+    "headings": 2
+  }
+}

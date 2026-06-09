@@ -13,16 +13,20 @@ interface AuthContextType {
   user: AuthUser | null;
   token: string | null;
   loading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<AuthUser>;
   logout: () => void;
   isAuthenticated: boolean;
 }
+
+const noopLogin = async (_username: string, _password: string): Promise<AuthUser> => {
+  throw new Error('AuthContext not initialized');
+};
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   token: null,
   loading: true,
-  login: async () => {},
+  login: noopLogin,
   logout: () => {},
   isAuthenticated: false,
 });
@@ -54,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('token', payload.access_token);
     setToken(payload.access_token);
     setUser(payload.user);
+    return payload.user;
   };
 
   const logout = () => {

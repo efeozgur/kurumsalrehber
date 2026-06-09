@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useRouter, usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, Users, Building2, UserCog, BadgeCheck, Lightbulb, LogOut, Menu, X, Phone, Search, ChevronDown, Bell, Home, Utensils, Puzzle,
+  LayoutDashboard, Users, Building2, UserCog, BadgeCheck, Lightbulb, LogOut, Menu, X, Phone, Search, ChevronDown, Bell, Home, Utensils, Puzzle, Scale,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -30,15 +30,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [mealPlansEnabled, setMealPlansEnabled] = useState(true);
 
   useEffect(() => {
-    api.getModuleStatus('meal-plans').then((res) => {
-      setMealPlansEnabled(res.enabled !== false);
+    api.getModuleStatus('meal-plans').then((r) => {
+      setMealPlansEnabled(r.enabled !== false);
     }).catch(() => {});
   }, []);
 
-  const menuItems = baseMenuItems.filter((item) => {
-    if (item.href === '/admin/meal-plans') return mealPlansEnabled;
-    return true;
-  });
+  const showVesayet = user?.role === 'SUPER_ADMIN' || user?.role === 'VESAYET_ADMIN';
+  const menuItems = [
+    ...baseMenuItems.filter((item) => {
+      if (item.href === '/admin/meal-plans') return mealPlansEnabled;
+      return true;
+    }),
+    ...(showVesayet ? [{ href: '/vesayet', label: 'Vesayet', icon: Scale }] : []),
+  ];
 
   useEffect(() => {
     if (pathname === '/admin/login' || pathname === '/admin/setup') return;
@@ -61,6 +65,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setSetupCheck(false);
     }
   }, [loading, isAuthenticated, pathname, router]);
+
+  // VESAYET_ADMIN rolündekileri kendi modülüne yönlendir
+  useEffect(() => {
+    if (!loading && user && user.role === 'VESAYET_ADMIN') {
+      router.push('/vesayet');
+    }
+  }, [loading, user, router]);
 
   if (pathname === '/admin/login' || pathname === '/admin/setup') {
     return <>{children}</>;

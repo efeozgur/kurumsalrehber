@@ -1,0 +1,136 @@
+{
+  "$schema": "https://designlang.app/schemas/gradients.json",
+  "source": "https://localhost:7023/KisitliKisiBilgileri/Details/105",
+  "generated": "2026-06-09T17:09:06.654Z",
+  "count": 8,
+  "gradients": [
+    {
+      "raw": "linear-gradient(135deg, rgb(172, 175, 233), rgb(115, 85, 176))",
+      "type": "linear",
+      "direction": "135deg",
+      "stops": [
+        {
+          "color": "rgb(172, 175, 233)",
+          "position": null
+        },
+        {
+          "color": "rgb(115, 85, 176)",
+          "position": null
+        }
+      ],
+      "classification": "brand"
+    },
+    {
+      "raw": "linear-gradient(135deg, rgb(99, 102, 241), rgb(79, 70, 229))",
+      "type": "linear",
+      "direction": "135deg",
+      "stops": [
+        {
+          "color": "rgb(99, 102, 241)",
+          "position": null
+        },
+        {
+          "color": "rgb(79, 70, 229)",
+          "position": null
+        }
+      ],
+      "classification": "brand"
+    },
+    {
+      "raw": "linear-gradient(135deg, rgb(23, 162, 184), rgb(19, 132, 150))",
+      "type": "linear",
+      "direction": "135deg",
+      "stops": [
+        {
+          "color": "rgb(23, 162, 184)",
+          "position": null
+        },
+        {
+          "color": "rgb(19, 132, 150)",
+          "position": null
+        }
+      ],
+      "classification": "brand"
+    },
+    {
+      "raw": "linear-gradient(135deg, rgb(40, 167, 69), rgb(32, 160, 57))",
+      "type": "linear",
+      "direction": "135deg",
+      "stops": [
+        {
+          "color": "rgb(40, 167, 69)",
+          "position": null
+        },
+        {
+          "color": "rgb(32, 160, 57)",
+          "position": null
+        }
+      ],
+      "classification": "brand"
+    },
+    {
+      "raw": "linear-gradient(135deg, rgb(255, 193, 7), rgb(224, 168, 0))",
+      "type": "linear",
+      "direction": "135deg",
+      "stops": [
+        {
+          "color": "rgb(255, 193, 7)",
+          "position": null
+        },
+        {
+          "color": "rgb(224, 168, 0)",
+          "position": null
+        }
+      ],
+      "classification": "brand"
+    },
+    {
+      "raw": "linear-gradient(135deg, rgb(220, 53, 69), rgb(200, 35, 51))",
+      "type": "linear",
+      "direction": "135deg",
+      "stops": [
+        {
+          "color": "rgb(220, 53, 69)",
+          "position": null
+        },
+        {
+          "color": "rgb(200, 35, 51)",
+          "position": null
+        }
+      ],
+      "classification": "brand"
+    },
+    {
+      "raw": "linear-gradient(135deg, rgb(0, 123, 255), rgb(0, 86, 179))",
+      "type": "linear",
+      "direction": "135deg",
+      "stops": [
+        {
+          "color": "rgb(0, 123, 255)",
+          "position": null
+        },
+        {
+          "color": "rgb(0, 86, 179)",
+          "position": null
+        }
+      ],
+      "classification": "brand"
+    },
+    {
+      "raw": "linear-gradient(135deg, rgb(102, 126, 234), rgb(118, 75, 162))",
+      "type": "linear",
+      "direction": "135deg",
+      "stops": [
+        {
+          "color": "rgb(102, 126, 234)",
+          "position": null
+        },
+        {
+          "color": "rgb(118, 75, 162)",
+          "position": null
+        }
+      ],
+      "classification": "brand"
+    }
+  ]
+}

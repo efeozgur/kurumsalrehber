@@ -59,6 +59,19 @@ Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebili
 - **Modül Durumu Entegrasyonu:** Modül pasif edilince backend `findToday()` null döndürür, public header'daki buton ve kartlar kaybolur, admin sidebar'daki link filtrelenir; `GET /api/modules/:key/status` public endpoint'i
 - **İstatistik Sıfırlama:** `DELETE /api/admin/analytics/clear` endpoint'i (sadece SUPER_ADMIN), admin dashboard'da "İstatistikleri Sıfırla" butonu, onay sonrası tüm SearchLog kayıtlarını siler ve dashboard'u otomatik yeniler
 
+### Phase 7 — Vesayet (Kısıtlı) Modülü (Tamamlandı)
+- **Vesayet Modeli:** `Ward` modeli (firstName/lastName/tcKimlikNo/dosyaNo/status/birthDate/notes + guardian fields) ve `BankAccount` modeli (bankName/iban/amount/currency/termMonth) ilişkili olarak Prisma şemasına eklendi; migration oluşturuldu
+- **Backend CRUD:** `VesayetModule` ile tüm Ward ve BankAccount CRUD endpoint'leri; sadece `VESAYET_ADMIN` ve `SUPER_ADMIN` rollerine yetki veren `@ModuleAccess('VESAYET_ADMIN')` dekoratörü ve guard
+- **Kur Bilgisi API:** `GET /api/admin/vesayet/exchange-rates` — exchangerate-api.com üzerinden USD/EUR/GBP/CHF kurlarını 1 USD = X TL formatında döndürür; fallback değerler mevcut
+- **Rapor Özet API:** `GET /api/admin/vesayet/reports/summary` — toplam kısıtlı sayısı, aktif/pasif dağılımı, para birimi bazlı bakiye toplamları, banka kırılımı (her bankanın para birimi bazlı bakiyeleri), ortalama bakiye
+- **Admin Panel Entegrasyonu:** Admin sidebar'da "Vesayet" linki (sadece yetkili kullanıcılara gösterilir), admin layout'ta `@ModuleAccess` kontrolü
+- **Vesayet Arayüzü (Light Tema):** Kendi layout'u (üst profil barı + 64px ikon sidebar: Dashboard/Kısıtlı Ara/Kısıtlı Ekle/Banka Hesapları), light Bootstrap teması (#f1f5f9 bg, #0d6efd primary, Inter font), büyük kartlar ve yazılar
+- **Dashboard:** 4 istatistik kartı (toplam kısıtlı/toplam hesap/toplam bakiye/para birimleri), kur bilgisi kartı, hesap bakiye özeti (para birimi bazlı), raporlamalar bölümü
+- **Kısıtlı Listesi:** `/vesayet/kisitli` — arama + tablo (ad, TC, dosya no, durum badge, hesap sayısı, düzenle/sil); SUPER_ADMIN silme yetkisi
+- **Kısıtlı Detay:** `/vesayet/kisitli/[id]` — kişisel bilgiler, para birimi bazlı bakiye kartları, banka hesapları tablosu, düzenleme formu
+- **Kısıtlı Ekleme:** `/vesayet/kisitli/new` — TC 11 hane validasyonu, banka hesabı ekleme/çıkarma
+- **Banka Hesapları:** `/vesayet/hesaplar` — tüm kısıtlılara ait banka hesaplarının merkezi listesi, banka adı/para birimi filtreleme
+
 ## Teknoloji
 
 | Katman | Teknoloji |
@@ -81,6 +94,7 @@ Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebili
 - **Phase 4 (Tema Sistemi & İyileştirmeler):** Tamamlandı
 - **Phase 5 (Modül Altyapısı & Yemek Listesi):** Tamamlandı
 - **Phase 6 (Genişletilmiş İstatistik Dashboard):** Tamamlandı
+- **Phase 7 (Vesayet Modülü):** Tamamlandı
 - **Sonraki Fazlar:** Planlama aşamasında
 
 ## Dizin Yapısı
@@ -107,6 +121,7 @@ TelefonRehberi/
 │   │   │   │   ├── tips/           # İpucu CRUD
 │   │   │   │   ├── settings/       # Sistem ayarları (ipucu hızı, tema, yemek toggle)
 │   │   │   │   ├── modules/        # Modül yönetimi (aktif/pasif) + public status endpoint
+│   │   │   │   ├── vesayet/        # Kısıtlı/Banka hesabı CRUD + kur bilgisi + rapor özet
 │   │   │   │   ├── meal-plans/     # Haftalık yemek listesi CRUD (modül kontrollü)
 │   │   │   │   ├── food-items/     # Yemek havuzu (çorba/ana yemek/salata)
 │   │   │   │   └── upload/         # Dosya yükleme
@@ -116,6 +131,7 @@ TelefonRehberi/
 │       ├── src/
 │       │   ├── app/
 │   │       │   ├── admin/          # Dashboard (grafikli), contacts, departments (ağaç), titles, tips, users, modules, meal-plans
+│   │       │   ├── vesayet/        # Kısıtlı modülü (dashboard, liste, detay, ekleme, banka hesapları)
 │   │       │   ├── meal-plans/     # Haftalık yemek listesi (public)
 │       │   │   ├── globals.css
 │       │   │   ├── layout.tsx

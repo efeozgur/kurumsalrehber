@@ -309,4 +309,61 @@ export const api = {
 
   clearAnalytics: () =>
     request('/admin/analytics/clear', { method: 'DELETE' }),
+
+  // ─── Vesayet ──────────────────────────────────────────────
+
+  getWards: async () => {
+    const res = await request<any>('/admin/vesayet/wards');
+    return res.data ?? res;
+  },
+
+  getWard: async (id: number) => {
+    const res = await request<any>(`/admin/vesayet/wards/${id}`);
+    return res.data ?? res;
+  },
+
+  createWard: (data: any) =>
+    request('/admin/vesayet/wards', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateWard: (id: number, data: any) =>
+    request(`/admin/vesayet/wards/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  deleteWard: (id: number) =>
+    request(`/admin/vesayet/wards/${id}`, { method: 'DELETE' }),
+
+  getWardAccounts: async (wardId: number) => {
+    const res = await request<any>(`/admin/vesayet/wards/${wardId}/accounts`);
+    return res.data ?? res;
+  },
+
+  createBankAccount: (data: any) =>
+    request('/admin/vesayet/accounts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateBankAccount: (id: number, data: any) =>
+    request(`/admin/vesayet/accounts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  deleteBankAccount: (id: number) =>
+    request(`/admin/vesayet/accounts/${id}`, { method: 'DELETE' }),
+
+  getExchangeRates: async () => {
+    const res = await request<any>('/admin/vesayet/exchange-rates');
+    return res.data ?? res;
+  },
+
+  getReportSummary: async () => {
+    const res = await request<any>('/admin/vesayet/reports/summary');
+    return res.data ?? res;
+  },
 };

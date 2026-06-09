@@ -1,0 +1,13 @@
+Clone the design language of this unknown page and build a fresh equivalent.
+Visual feel: flat. Tone: neutral · Headings: Title Case · CTA verbs: [object Object], [object Object], [object Object]
+Primary palette: #2d3748, #ffffff, #212529, #000000, #1e293b.
+Typography: [object Object], [object Object].
+Corner radius vocabulary: 6, 10, 16.
+Shadow vocabulary: rgba(102, 126, 234, 0.15) 0px 0px 0px 4px | rgba(0, 0, 0, 0.075) 0px 2px 4px 0px | rgba(0, 0, 0, 0.1) 0px 4px 12px 0px.
+Use: Use Bootstrap 5 utility classes. Customize via CSS variables.
+Page structure:
+- hero
+- features
+- social proof
+- cta
+- footer

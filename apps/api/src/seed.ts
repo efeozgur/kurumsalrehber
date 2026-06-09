@@ -152,13 +152,41 @@ async function main() {
   }
 
   // Varsayılan modüller
-  const modulesCount = await prisma.module.count();
-  if (modulesCount === 0) {
-    await prisma.module.create({
-      data: { key: 'meal-plans', name: 'Yemek Listesi', description: 'Haftalık yemek listesi yönetimi', enabled: true },
+  const defaultModules = [
+    { key: 'meal-plans', name: 'Yemek Listesi', description: 'Haftalık yemek listesi yönetimi' },
+    { key: 'vesayet', name: 'Vesayet', description: 'Vesayet kısıtlı ve banka hesabı yönetimi' },
+  ];
+  for (const mod of defaultModules) {
+    await prisma.module.upsert({
+      where: { key: mod.key },
+      update: {},
+      create: { ...mod, enabled: true },
     });
-    console.log('Varsayılan modüller oluşturuldu.');
   }
+
+  // VESAYET_ADMIN kullanıcısı (önce oluştur, sonra izin ver)
+  const vesayetAdminExists = await prisma.user.findUnique({ where: { username: 'vesayet' } });
+  if (!vesayetAdminExists) {
+    const hashed = await bcrypt.hash('vesayet123', 10);
+    await prisma.user.create({
+      data: { username: 'vesayet', password: hashed, role: 'VESAYET_ADMIN' },
+    });
+    console.log('Vesayet admin kullanıcı oluşturuldu: vesayet / vesayet123');
+  }
+
+  // Tüm kullanıcılara modül izinlerini ver
+  const allUsers = await prisma.user.findMany();
+  const allModules = await prisma.module.findMany();
+  for (const u of allUsers) {
+    for (const mod of allModules) {
+      await prisma.userModulePermission.upsert({
+        where: { userId_moduleId: { userId: u.id, moduleId: mod.id } },
+        update: {},
+        create: { userId: u.id, moduleId: mod.id },
+      });
+    }
+  }
+  console.log('Varsayılan modüller oluşturuldu.');
 
   // Varsayılan yemekler
   const foodCount = await prisma.foodItem.count();

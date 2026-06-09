@@ -19,8 +19,12 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(username, password);
-      router.push('/admin');
+      const user = await login(username, password);
+      if (user.role === 'VESAYET_ADMIN') {
+        router.push('/vesayet');
+      } else {
+        router.push('/admin');
+      }
     } catch (err: any) {
       setError(err.message || 'Giriş yapılırken bir hata oluştu');
       setLoading(false);

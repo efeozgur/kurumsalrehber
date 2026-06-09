@@ -1,0 +1,70 @@
+{
+  "pageIntent": {
+    "type": "unknown",
+    "confidence": 0,
+    "path": "/KisitliKisiBilgileri/Details/105",
+    "title": "- Burdur Adliye Portal",
+    "description": "",
+    "signals": [],
+    "alternates": [],
+    "needsSmart": true
+  },
+  "sectionRoles": {
+    "sections": [
+      {
+        "index": 0,
+        "tag": "nav",
+        "role": "nav",
+        "subrole": null,
+        "confidence": 0.9,
+        "heading": null,
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "w": 1280,
+          "h": 84.1875
+        },
+        "buttonCount": 2,
+        "cardCount": 25,
+        "slots": {
+          "ctaCount": 2,
+          "lede": "Portal\n Telefon Rehberi\n Birim Telefonları\n Avukat Rehber\n Haftalık Nöbetler\n Nöbetçi Mahkemeler\n Teknik Servis Arıza Bildirim\n Hesaplamalar \n Araçlar \n Yönetici / Yetkili Girişi"
+        },
+        "needsSmart": false
+      },
+      {
+        "index": 1,
+        "tag": "main",
+        "role": "content",
+        "subrole": null,
+        "confidence": 0.3,
+        "heading": "Yönetici Girişi",
+        "bounds": {
+          "x": 82,
+          "y": 84.1875,
+          "w": 1116,
+          "h": 816
+        },
+        "buttonCount": 2,
+        "cardCount": 1,
+        "slots": {
+          "heading": "Yönetici Girişi",
+          "subheadings": [
+            "Giriş Bilgileri"
+          ],
+          "ctaCount": 2,
+          "lede": "PORTAL YÖNETİM PANELİ\nYönetici Girişi"
+        },
+        "needsSmart": true
+      }
+    ],
+    "counts": {
+      "nav": 1,
+      "content": 1
+    },
+    "readingOrder": [
+      "nav",
+      "content"
+    ]
+  }
+}
