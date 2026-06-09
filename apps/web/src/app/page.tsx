@@ -524,26 +524,6 @@ export default function HomePage() {
                         </div>
                       )}
                     </div>
-                    {isAdmin && (
-                      <div className="flex items-center justify-center gap-2 px-5 pb-4">
-                        <a
-                          href={`/admin/contacts/${contact.id}`}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-brand-400 bg-brand-500/10 hover:bg-brand-500/20 transition-all"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                          Düzenle
-                        </a>
-                        {isSuper && (
-                          <button
-                            onClick={() => handleDelete(contact.id, `${contact.firstName} ${contact.lastName}`)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-all"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            Sil
-                          </button>
-                        )}
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
