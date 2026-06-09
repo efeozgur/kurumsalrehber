@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tema Önizleme - Burdur Adliyesi</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #0f0f0f; color: #fff; padding: 40px 24px; }
+  h1 { text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .sub { text-align: center; color: #888; margin-bottom: 40px; font-size: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1400px; margin: 0 auto; }
+  @media (max-width: 1100px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+
+  .card { border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03); transition: transform .2s; }
+  .card:hover { transform: translateY(-4px); }
+  .card-header { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .card-header h3 { font-size: 15px; font-weight: 600; }
+  .card-header .time { font-size: 12px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+
+  .hero { padding: 32px 24px 40px; text-align: center; position: relative; overflow: hidden; min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .hero .badge { font-size: 11px; padding: 4px 14px; border-radius: 20px; margin-bottom: 16px; font-weight: 500; }
+  .hero h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .hero p { font-size: 14px; opacity: 0.6; margin-bottom: 20px; }
+  .search-bar { display: flex; gap: 8px; max-width: 400px; width: 100%; }
+  .search-bar input { flex: 1; padding: 12px 16px; border-radius: 14px; border: none; background: rgba(255,255,255,0.06); color: #fff; font-size: 14px; outline: none; }
+  .search-bar button { padding: 12px 24px; border-radius: 14px; border: none; color: #fff; font-weight: 600; font-size: 13px; cursor: pointer; }
+
+  .content { padding: 20px; }
+  .contact-card { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; background: rgba(255,255,255,0.04); margin-bottom: 8px; }
+  .contact-card:last-child { margin-bottom: 0; }
+  .avatar { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #fff; flex-shrink: 0; }
+  .info { flex: 1; min-width: 0; }
+  .info .name { font-size: 13px; font-weight: 600; }
+  .info .detail { font-size: 11px; opacity: 0.5; margin-top: 2px; }
+  .badge-sm { font-size: 10px; padding: 2px 10px; border-radius: 20px; font-weight: 500; }
+
+  /* Sabah (current) */
+  .theme-sabah { --brand: #f97316; --brand-400: #fb923c; --brand-500: #f97316; --brand-600: #ea580c; }
+  .theme-sabah .hero { background: radial-gradient(ellipse at top center, rgba(249,115,22,0.15) 0%, transparent 60%), radial-gradient(ellipse at bottom left, rgba(249,115,22,0.06) 0%, transparent 50%); }
+  .theme-sabah .badge { background: rgba(249,115,22,0.1); color: #fb923c; border: 1px solid rgba(249,115,22,0.2); }
+  .theme-sabah .search-bar button { background: linear-gradient(135deg, #f97316, #ea580c); box-shadow: 0 4px 15px rgba(249,115,22,0.3); }
+  .theme-sabah .avatar { background: linear-gradient(135deg, #fb923c, #ea580c); }
+  .theme-sabah .badge-sm { background: rgba(249,115,22,0.1); color: #fb923c; }
+  .theme-sabah .time { background: rgba(249,115,22,0.15); color: #fb923c; }
+
+  /* Og Mavi */
+  .theme-ogle { --brand: #3b82f6; --brand-400: #60a5fa; --brand-500: #3b82f6; --brand-600: #2563eb; }
+  .theme-ogle .hero { background: radial-gradient(ellipse at top center, rgba(59,130,246,0.12) 0%, transparent 60%), radial-gradient(ellipse at bottom left, rgba(59,130,246,0.05) 0%, transparent 50%); }
+  .theme-ogle .badge { background: rgba(59,130,246,0.1); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+  .theme-ogle .search-bar button { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 15px rgba(59,130,246,0.3); }
+  .theme-ogle .avatar { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+  .theme-ogle .badge-sm { background: rgba(59,130,246,0.1); color: #60a5fa; }
+  .theme-ogle .time { background: rgba(59,130,246,0.15); color: #60a5fa; }
+
+  /* Aksam Mor */
+  .theme-aksam { --brand: #a855f7; --brand-400: #c084fc; --brand-500: #a855f7; --brand-600: #9333ea; }
+  .theme-aksam .hero { background: radial-gradient(ellipse at top center, rgba(168,85,247,0.12) 0%, transparent 60%), radial-gradient(ellipse at bottom left, rgba(236,72,153,0.08) 0%, transparent 50%); }
+  .theme-aksam .badge { background: rgba(168,85,247,0.1); color: #c084fc; border: 1px solid rgba(168,85,247,0.2); }
+  .theme-aksam .search-bar button { background: linear-gradient(135deg, #a855f7, #9333ea); box-shadow: 0 4px 15px rgba(168,85,247,0.3); }
+  .theme-aksam .avatar { background: linear-gradient(135deg, #c084fc, #9333ea); }
+  .theme-aksam .badge-sm { background: rgba(168,85,247,0.1); color: #c084fc; }
+  .theme-aksam .time { background: rgba(168,85,247,0.15); color: #c084fc; }
+
+  /* Gece Indigo */
+  .theme-gece { --brand: #6366f1; --brand-400: #818cf8; --brand-500: #6366f1; --brand-600: #4f46e5; }
+  .theme-gece .hero { background: radial-gradient(ellipse at top center, rgba(99,102,241,0.12) 0%, transparent 60%), radial-gradient(ellipse at bottom left, rgba(99,102,241,0.05) 0%, transparent 50%); }
+  .theme-gece .badge { background: rgba(99,102,241,0.1); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
+  .theme-gece .search-bar button { background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 15px rgba(99,102,241,0.3); }
+  .theme-gece .avatar { background: linear-gradient(135deg, #818cf8, #4f46e5); }
+  .theme-gece .badge-sm { background: rgba(99,102,241,0.1); color: #818cf8; }
+  .theme-gece .time { background: rgba(99,102,241,0.15); color: #818cf8; }
+</style>
+</head>
+<body>
+  <h1>🧭 Saate Göre Tema Önizleme</h1>
+  <p class="sub">Brand rengi, hero gradyanı, butonlar, badge'ler ve avatar renkleri değişiyor. Koyu zemin ve glass efektleri sabit.</p>
+
+  <div class="grid">
+    <!-- SABAH -->
+    <div class="card theme-sabah">
+      <div class="card-header">
+        <h3>🌅 Sabah</h3>
+        <span class="time">06:00 - 12:00</span>
+      </div>
+      <div class="hero">
+        <div class="badge">Burdur Adliyesi Personel Bilgi Sistemi</div>
+        <h2>Personel Ara</h2>
+        <p>İsim, birim, ünvan veya telefonla arayın</p>
+        <div class="search-bar">
+          <input placeholder="Ad, soyad, ünvan..." />
+          <button>Ara</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="contact-card">
+          <div class="avatar">AA</div>
+          <div class="info">
+            <div class="name">Ahmet Arslan</div>
+            <div class="detail">Hakim  ·  Cumhuriyet Başsavcılığı</div>
+          </div>
+          <span class="badge-sm">Dahili 1001</span>
+        </div>
+        <div class="contact-card">
+          <div class="avatar">BY</div>
+          <div class="info">
+            <div class="name">Büşra Yılmaz</div>
+            <div class="detail">Zabıt Katibi  ·  İcra Müdürlüğü</div>
+          </div>
+          <span class="badge-sm">Dahili 1002</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ÖĞLE -->
+    <div class="card theme-ogle">
+      <div class="card-header">
+        <h3>☀️ Öğle</h3>
+        <span class="time">12:00 - 18:00</span>
+      </div>
+      <div class="hero">
+        <div class="badge">Burdur Adliyesi Personel Bilgi Sistemi</div>
+        <h2>Personel Ara</h2>
+        <p>İsim, birim, ünvan veya telefonla arayın</p>
+        <div class="search-bar">
+          <input placeholder="Ad, soyad, ünvan..." />
+          <button>Ara</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="contact-card">
+          <div class="avatar">AA</div>
+          <div class="info">
+            <div class="name">Ahmet Arslan</div>
+            <div class="detail">Hakim  ·  Cumhuriyet Başsavcılığı</div>
+          </div>
+          <span class="badge-sm">Dahili 1001</span>
+        </div>
+        <div class="contact-card">
+          <div class="avatar">BY</div>
+          <div class="info">
+            <div class="name">Büşra Yılmaz</div>
+            <div class="detail">Zabıt Katibi  ·  İcra Müdürlüğü</div>
+          </div>
+          <span class="badge-sm">Dahili 1002</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- AKŞAM -->
+    <div class="card theme-aksam">
+      <div class="card-header">
+        <h3>🌆 Akşam</h3>
+        <span class="time">18:00 - 21:00</span>
+      </div>
+      <div class="hero">
+        <div class="badge">Burdur Adliyesi Personel Bilgi Sistemi</div>
+        <h2>Personel Ara</h2>
+        <p>İsim, birim, ünvan veya telefonla arayın</p>
+        <div class="search-bar">
+          <input placeholder="Ad, soyad, ünvan..." />
+          <button>Ara</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="contact-card">
+          <div class="avatar">AA</div>
+          <div class="info">
+            <div class="name">Ahmet Arslan</div>
+            <div class="detail">Hakim  ·  Cumhuriyet Başsavcılığı</div>
+          </div>
+          <span class="badge-sm">Dahili 1001</span>
+        </div>
+        <div class="contact-card">
+          <div class="avatar">BY</div>
+          <div class="info">
+            <div class="name">Büşra Yılmaz</div>
+            <div class="detail">Zabıt Katibi  ·  İcra Müdürlüğü</div>
+          </div>
+          <span class="badge-sm">Dahili 1002</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- GECE -->
+    <div class="card theme-gece">
+      <div class="card-header">
+        <h3>🌙 Gece</h3>
+        <span class="time">21:00 - 06:00</span>
+      </div>
+      <div class="hero">
+        <div class="badge">Burdur Adliyesi Personel Bilgi Sistemi</div>
+        <h2>Personel Ara</h2>
+        <p>İsim, birim, ünvan veya telefonla arayın</p>
+        <div class="search-bar">
+          <input placeholder="Ad, soyad, ünvan..." />
+          <button>Ara</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="contact-card">
+          <div class="avatar">AA</div>
+          <div class="info">
+            <div class="name">Ahmet Arslan</div>
+            <div class="detail">Hakim  ·  Cumhuriyet Başsavcılığı</div>
+          </div>
+          <span class="badge-sm">Dahili 1001</span>
+        </div>
+        <div class="contact-card">
+          <div class="avatar">BY</div>
+          <div class="info">
+            <div class="name">Büşra Yılmaz</div>
+            <div class="detail">Zabıt Katibi  ·  İcra Müdürlüğü</div>
+          </div>
+          <span class="badge-sm">Dahili 1002</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

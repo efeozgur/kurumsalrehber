@@ -3,10 +3,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { useTheme, Theme } from '@/lib/theme';
 import { Contact, Department } from '@/types';
 import {
   Search, Grid3X3, List, Building2, Phone, Mail, User,
-  ArrowRight, Sparkles, ChevronLeft, ChevronRight, X, Users, BadgeCheck, Lightbulb, Star, Clock, Trash2, LayoutDashboard, Pencil,
+  ArrowRight, Sparkles, ChevronLeft, ChevronRight, X, Users, BadgeCheck, Lightbulb, Star, Clock, Trash2, LayoutDashboard, Pencil, Palette,
 } from 'lucide-react';
 
 function getInitials(f: string, l: string) { return `${f.charAt(0)}${l.charAt(0)}`.toUpperCase(); }
@@ -41,7 +42,18 @@ export default function HomePage() {
   const [showFav, setShowFav] = useState(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const themeRef = useRef<HTMLDivElement>(null);
+
+  const { theme, setTheme } = useTheme();
+
+  const themes: { id: Theme; label: string; colors: string }[] = [
+    { id: 'sabah', label: 'Sabah', colors: 'from-amber-500 to-orange-600' },
+    { id: 'ogle', label: 'Öğle', colors: 'from-blue-400 to-blue-600' },
+    { id: 'aksam', label: 'Akşam', colors: 'from-purple-400 to-purple-600' },
+    { id: 'gece', label: 'Gece', colors: 'from-indigo-400 to-indigo-600' },
+  ];
 
   useEffect(() => {
     try {
@@ -54,6 +66,9 @@ export default function HomePage() {
     const handler = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setShowHistory(false);
+      }
+      if (themeRef.current && !themeRef.current.contains(e.target as Node)) {
+        setThemeOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -329,6 +344,35 @@ export default function HomePage() {
                 <p className="text-xs text-gray-500">Telefon Rehberi</p>
               </div>
             </div>
+            {/* Theme Switcher */}
+            <div className="relative" ref={themeRef}>
+              <button
+                onClick={() => setThemeOpen(!themeOpen)}
+                className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500
+                           border border-white/[0.08] hover:border-brand-500/30 hover:text-brand-400
+                           hover:bg-brand-500/5 transition-all duration-200"
+              >
+                <Palette className="w-4 h-4" />
+                <span className="hidden sm:inline text-xs capitalize">{themes.find((t) => t.id === theme)?.label}</span>
+              </button>
+              {themeOpen && (
+                <div className="absolute right-0 top-full mt-1 w-40 rounded-xl bg-surface-card border border-white/[0.08] shadow-2xl z-50 overflow-hidden">
+                  {themes.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => { setTheme(t.id); setThemeOpen(false); }}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
+                        theme === t.id ? 'text-brand-400 bg-brand-500/10' : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded-full bg-gradient-to-br ${t.colors} flex-shrink-0`} />
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {isAuthenticated ? (
               <a
                 href="/admin"
