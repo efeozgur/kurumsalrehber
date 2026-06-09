@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { Ward } from '@/types';
+import BankNameSelect from '@/components/BankNameSelect';
 import {
   ArrowLeft, Scale, Banknote, Pencil, Trash2, Plus,
   Building2, Save, X, User, Hash, FileText, Wallet,
@@ -36,6 +37,13 @@ export default function KisitliDetailPage() {
   const [accAmount, setAccAmount] = useState('');
   const [accCurrency, setAccCurrency] = useState('TL');
   const [accTermType, setAccTermType] = useState('vadesiz');
+
+  const [editingAccountId, setEditingAccountId] = useState<number | null>(null);
+  const [editAccBankName, setEditAccBankName] = useState('');
+  const [editAccIban, setEditAccIban] = useState('');
+  const [editAccAmount, setEditAccAmount] = useState('');
+  const [editAccCurrency, setEditAccCurrency] = useState('TL');
+  const [editAccTermType, setEditAccTermType] = useState('vadesiz');
 
   useEffect(() => {
     api.getWard(id).then((data) => {
@@ -92,6 +100,36 @@ export default function KisitliDetailPage() {
       setAccAmount('');
       setAccCurrency('TL');
       setAccTermType('vadesiz');
+      const updated = await api.getWard(id);
+      setWard(updated);
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const startEditAccount = (acc: Ward['bankAccounts'][0]) => {
+    setEditingAccountId(acc.id);
+    setEditAccBankName(acc.bankName);
+    setEditAccIban(acc.iban);
+    setEditAccAmount(String(acc.amount));
+    setEditAccCurrency(acc.currency);
+    setEditAccTermType(acc.termType);
+  };
+
+  const cancelEditAccount = () => {
+    setEditingAccountId(null);
+  };
+
+  const handleUpdateAccount = async (accountId: number) => {
+    try {
+      await api.updateBankAccount(accountId, {
+        bankName: editAccBankName,
+        iban: editAccIban,
+        amount: parseFloat(editAccAmount) || 0,
+        currency: editAccCurrency,
+        termType: editAccTermType,
+      });
+      setEditingAccountId(null);
       const updated = await api.getWard(id);
       setWard(updated);
     } catch (err: any) {
@@ -202,10 +240,31 @@ export default function KisitliDetailPage() {
                 <input required value={dosyaNo} onChange={(e) => setDosyaNo(e.target.value)} className="v-input" />
               </div>
             </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-              <input type="checkbox" checked={isRemoved} onChange={(e) => setIsRemoved(e.target.checked)}
-                style={{ width: '16px', height: '16px', borderRadius: '4px', border: '1px solid #d1d5db', accentColor: '#0d6efd' }} />
-              <span style={{ fontSize: '13px', color: '#4b5563' }}>Kısıtlı pasif</span>
+            <label style={{
+              display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', marginTop: '20px',
+              padding: '14px 18px', borderRadius: '12px', border: '2px solid #e2e8f0',
+              background: isRemoved ? '#fef2f2' : '#f8fafc',
+              transition: 'all 0.15s', userSelect: 'none',
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = isRemoved ? '#fca5a5' : '#cbd5e1'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = isRemoved ? '#fca5a5' : '#e2e8f0'; }}
+            >
+              <div style={{
+                width: '22px', height: '22px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: isRemoved ? '#dc3545' : '#e2e8f0',
+                transition: 'all 0.15s',
+              }}>
+                {isRemoved && (
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: isRemoved ? '#991b1b' : '#1e293b' }}>Vesayetten Düştü mü ?</div>
+                <div style={{ fontSize: '12px', color: isRemoved ? '#ef4444' : '#64748b', marginTop: '1px' }}>{isRemoved ? 'Evet, vesayet kaydı düşüldü' : 'Hayır, vesayet devam ediyor'}</div>
+              </div>
+              <input type="checkbox" checked={isRemoved} onChange={(e) => setIsRemoved(e.target.checked)} style={{ display: 'none' }} />
             </label>
             <div style={{ display: 'flex', gap: '12px', paddingTop: '8px' }}>
               <button type="submit" disabled={saving} className="v-btn-primary">
@@ -332,8 +391,8 @@ export default function KisitliDetailPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="v-label">Banka Adı</label>
-                  <input required placeholder="Ziraat Bankası" value={accBankName} onChange={(e) => setAccBankName(e.target.value)} className="v-input" />
+                  <label className="v-label">Banka Adı *</label>
+                  <BankNameSelect required value={accBankName} onChange={(v) => setAccBankName(v)} />
                 </div>
                 <div>
                   <label className="v-label">IBAN</label>
@@ -384,46 +443,102 @@ export default function KisitliDetailPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {ward.bankAccounts.map((acc) => (
-                    <tr key={acc.id}>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(13,110,253,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Banknote className="w-3.5 h-4" style={{ color: '#0d6efd' }} />
-                          </div>
-                          <div>
-                            <div style={{ fontWeight: 500, color: '#1e293b' }}>{acc.bankName}</div>
-                            <div style={{ fontSize: '11px', color: '#64748b' }}>{acc.currency}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="hidden sm:table-cell">
-                        <span className="font-mono" style={{ color: '#64748b', fontSize: '13px' }}>{acc.iban}</span>
-                      </td>
-                      <td>
-                        <span style={{ fontWeight: 600, color: '#1e293b' }}>{acc.amount.toLocaleString('tr-TR')} {acc.currency}</span>
-                      </td>
-                      <td className="hidden sm:table-cell">
-                        <span className="v-badge" style={{ background: acc.termType === 'vadeli' ? '#fef3c7' : '#e0f2fe', color: acc.termType === 'vadeli' ? '#92400e' : '#0369a1' }}>
-                          {acc.termType === 'vadeli' ? 'Vadeli' : 'Vadesiz'}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
-                          {isSuper && (
-                            <button
-                              onClick={() => handleDeleteAccount(acc.id)}
-                              style={{ padding: '6px', borderRadius: '6px', color: '#9ca3af', display: 'inline-flex', transition: 'all 0.15s', background: 'none', border: 'none', cursor: 'pointer' }}
-                              onMouseEnter={(e) => { e.currentTarget.style.color = '#dc3545'; e.currentTarget.style.background = 'rgba(220,53,69,0.08)'; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.background = 'transparent'; }}
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                  {ward.bankAccounts.map((acc) => {
+                    const isEditing = editingAccountId === acc.id;
+                    return (
+                      <tr key={acc.id}>
+                        <td>
+                          {isEditing ? (
+                            <BankNameSelect value={editAccBankName} onChange={(v) => setEditAccBankName(v)} />
+                          ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(13,110,253,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Banknote className="w-3.5 h-4" style={{ color: '#0d6efd' }} />
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 500, color: '#1e293b' }}>{acc.bankName}</div>
+                                <div style={{ fontSize: '11px', color: '#64748b' }}>{acc.currency}</div>
+                              </div>
+                            </div>
                           )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="hidden sm:table-cell">
+                          {isEditing ? (
+                            <input value={editAccIban} onChange={(e) => setEditAccIban(e.target.value)} className="v-input text-sm font-mono" />
+                          ) : (
+                            <span className="font-mono" style={{ color: '#64748b', fontSize: '13px' }}>{acc.iban}</span>
+                          )}
+                        </td>
+                        <td>
+                          {isEditing ? (
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <input type="number" step="0.01" value={editAccAmount} onChange={(e) => setEditAccAmount(e.target.value)} className="v-input text-sm" style={{ width: '100px' }} />
+                              <select value={editAccCurrency} onChange={(e) => setEditAccCurrency(e.target.value)} className="v-input text-sm" style={{ width: '70px' }}>
+                                <option value="TL">TL</option>
+                                <option value="EUR">EUR</option>
+                                <option value="USD">USD</option>
+                              </select>
+                            </div>
+                          ) : (
+                            <span style={{ fontWeight: 600, color: '#1e293b' }}>{acc.amount.toLocaleString('tr-TR')} {acc.currency}</span>
+                          )}
+                        </td>
+                        <td className="hidden sm:table-cell">
+                          {isEditing ? (
+                            <select value={editAccTermType} onChange={(e) => setEditAccTermType(e.target.value)} className="v-input text-sm">
+                              <option value="vadesiz">Vadesiz</option>
+                              <option value="vadeli">Vadeli</option>
+                            </select>
+                          ) : (
+                            <span className="v-badge" style={{ background: acc.termType === 'vadeli' ? '#fef3c7' : '#e0f2fe', color: acc.termType === 'vadeli' ? '#92400e' : '#0369a1' }}>
+                              {acc.termType === 'vadeli' ? 'Vadeli' : 'Vadesiz'}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                            {isEditing ? (
+                              <>
+                                <button onClick={() => handleUpdateAccount(acc.id)}
+                                  style={{ padding: '6px', borderRadius: '6px', color: '#28a745', display: 'inline-flex', background: 'none', border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(40,167,69,0.08)'; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                >
+                                  <Save className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={cancelEditAccount}
+                                  style={{ padding: '6px', borderRadius: '6px', color: '#6c757d', display: 'inline-flex', background: 'none', border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(108,117,125,0.08)'; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button onClick={() => startEditAccount(acc)}
+                                  style={{ padding: '6px', borderRadius: '6px', color: '#64748b', display: 'inline-flex', background: 'none', border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.color = '#0d6efd'; e.currentTarget.style.background = 'rgba(13,110,253,0.08)'; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.background = 'transparent'; }}
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                {isSuper && (
+                                  <button onClick={() => handleDeleteAccount(acc.id)}
+                                    style={{ padding: '6px', borderRadius: '6px', color: '#64748b', display: 'inline-flex', background: 'none', border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.color = '#dc3545'; e.currentTarget.style.background = 'rgba(220,53,69,0.08)'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.background = 'transparent'; }}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

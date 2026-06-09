@@ -213,6 +213,23 @@ async function main() {
     console.log('Varsayılan yemekler oluşturuldu.');
   }
 
+  // Varsayılan bankalar
+  const bankCount = await prisma.bank.count();
+  if (bankCount === 0) {
+    const defaultBanks = [
+      { name: 'T. Vakıflar Bankası' },
+      { name: 'Ziraat Bankası' },
+    ];
+    for (const bank of defaultBanks) {
+      await prisma.bank.upsert({
+        where: { name: bank.name },
+        update: {},
+        create: bank,
+      });
+    }
+    console.log('Varsayılan bankalar oluşturuldu.');
+  }
+
   // Demo SearchLog verileri (son 30 gün)
   const searchLogCount = await prisma.searchLog.count();
   if (searchLogCount === 0) {

@@ -118,6 +118,24 @@ export class VesayetService {
     }
   }
 
+  // ─── Banks ────────────────────────────────────────────────
+
+  async findAllBanks() {
+    return this.prisma.bank.findMany({ orderBy: { id: 'asc' } });
+  }
+
+  async createBank(name: string) {
+    return this.prisma.bank.create({ data: { name } });
+  }
+
+  async updateBank(id: number, name: string) {
+    return this.prisma.bank.update({ where: { id }, data: { name } });
+  }
+
+  async removeBank(id: number) {
+    return this.prisma.bank.delete({ where: { id } });
+  }
+
   // ─── Reports ─────────────────────────────────────────────
 
   async getReportSummary() {

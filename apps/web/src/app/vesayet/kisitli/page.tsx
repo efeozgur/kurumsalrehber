@@ -51,12 +51,12 @@ export default function KisitliListesi() {
   };
 
   return (
-    <div className="vesayet-body" style={{ backgroundColor: '#f1f5f9', padding: '32px 0 64px' }}>
+    <div className="vesayet-body" style={{ backgroundColor: '#f5f6fa', padding: '32px 0 64px' }}>
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
           <div>
-            <h1 style={{ fontSize: '30.4px', fontWeight: 700, color: '#1e293b', lineHeight: '36.48px' }}>Kısıtlı Listesi</h1>
-            <p style={{ color: '#64748b', fontSize: '14px', marginTop: '4px' }}>
+            <h1 style={{ fontSize: '30.4px', fontWeight: 700, color: '#111827', lineHeight: '36.48px' }}>Kısıtlı Listesi</h1>
+            <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
               Tüm kısıtlıları görüntüleyin ve yönetin
             </p>
           </div>
@@ -80,7 +80,7 @@ export default function KisitliListesi() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0' }}>
               <div className="relative w-8 h-8">
                 <div className="absolute inset-0 rounded-full border-2 border-primary-500/20" />
-                <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary-500 animate-spin" style={{ borderTopColor: '#0d6efd' }} />
+                <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary-500 animate-spin" style={{ borderTopColor: '#487fff' }} />
               </div>
             </div>
           ) : (
@@ -101,22 +101,22 @@ export default function KisitliListesi() {
                     <tr key={ward.id} onClick={() => router.push(`/vesayet/kisitli/${ward.id}`)} style={{ cursor: 'pointer' }}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #667eea22, #764ba222)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Scale className="w-4 h-5" style={{ color: '#667eea' }} />
+                          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #487fff22, #8252e922)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Scale className="w-4 h-5" style={{ color: '#8252e9' }} />
                           </div>
                           <div>
-                            <div style={{ fontWeight: 500, color: '#1e293b', fontSize: '14px' }}>{ward.firstName} {ward.lastName}</div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#64748b', marginTop: '1px' }}>
+                            <div style={{ fontWeight: 500, color: '#111827', fontSize: '14px' }}>{ward.firstName} {ward.lastName}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#6b7280', marginTop: '1px' }}>
                               <Building2 className="w-3 h-3" /> {ward.dosyaNo}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="hidden sm:table-cell">
-                        <span className="font-mono" style={{ color: '#64748b', fontSize: '13px' }}>{ward.tcKimlikNo}</span>
+                        <span className="font-mono" style={{ color: '#6b7280', fontSize: '13px' }}>{ward.tcKimlikNo}</span>
                       </td>
                       <td className="hidden md:table-cell">
-                        <span className="font-mono" style={{ color: '#64748b', fontSize: '13px' }}>{ward.dosyaNo}</span>
+                        <span className="font-mono" style={{ color: '#6b7280', fontSize: '13px' }}>{ward.dosyaNo}</span>
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         {ward.isRemoved ? (

@@ -78,6 +78,29 @@ export class VesayetController {
     return this.vesayetService.removeAccount(+id);
   }
 
+  // ─── Banks ────────────────────────────────────────────────
+
+  @Get('banks')
+  findAllBanks() {
+    return this.vesayetService.findAllBanks();
+  }
+
+  @Post('banks')
+  createBank(@Body('name') name: string) {
+    return this.vesayetService.createBank(name);
+  }
+
+  @Put('banks/:id')
+  updateBank(@Param('id') id: string, @Body('name') name: string) {
+    return this.vesayetService.updateBank(+id, name);
+  }
+
+  @Roles('SUPER_ADMIN')
+  @Delete('banks/:id')
+  removeBank(@Param('id') id: string) {
+    return this.vesayetService.removeBank(+id);
+  }
+
   // ─── Exchange Rates ──────────────────────────────────────
 
   @Get('exchange-rates')

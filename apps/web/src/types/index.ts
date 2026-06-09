@@ -97,6 +97,13 @@ export interface FavStat {
   favoritedAt: string;
 }
 
+export interface Bank {
+  id: number;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface BankAccount {
   id: number;
   bankName: string;

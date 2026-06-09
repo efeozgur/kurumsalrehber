@@ -322,11 +322,13 @@ export const api = {
     return res.data ?? res;
   },
 
-  createWard: (data: any) =>
-    request('/admin/vesayet/wards', {
+  createWard: async (data: any) => {
+    const res = await request<any>('/admin/vesayet/wards', {
       method: 'POST',
       body: JSON.stringify(data),
-    }),
+    });
+    return res.data ?? res;
+  },
 
   updateWard: (id: number, data: any) =>
     request(`/admin/vesayet/wards/${id}`, {
@@ -356,6 +358,26 @@ export const api = {
 
   deleteBankAccount: (id: number) =>
     request(`/admin/vesayet/accounts/${id}`, { method: 'DELETE' }),
+
+  getBanks: async () => {
+    const res = await request<any>('/admin/vesayet/banks');
+    return res.data ?? res;
+  },
+
+  createBank: (name: string) =>
+    request('/admin/vesayet/banks', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    }),
+
+  updateBank: (id: number, name: string) =>
+    request(`/admin/vesayet/banks/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name }),
+    }),
+
+  deleteBank: (id: number) =>
+    request(`/admin/vesayet/banks/${id}`, { method: 'DELETE' }),
 
   getExchangeRates: async () => {
     const res = await request<any>('/admin/vesayet/exchange-rates');

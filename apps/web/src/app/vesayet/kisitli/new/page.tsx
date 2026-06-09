@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import BankNameSelect from '@/components/BankNameSelect';
 import { ArrowLeft, Scale, Plus, Trash2, Banknote, Info } from 'lucide-react';
 
 interface AccountForm {
@@ -53,7 +54,7 @@ export default function NewKisitliPage() {
 
     setSaving(true);
     try {
-      await api.createWard({
+      const created = await api.createWard({
         firstName,
         lastName,
         tcKimlikNo,
@@ -66,7 +67,7 @@ export default function NewKisitliPage() {
           termType: a.termType,
         })),
       });
-      router.push('/vesayet');
+      router.push(`/vesayet/kisitli/${created.id}`);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -172,8 +173,8 @@ export default function NewKisitliPage() {
                   </button>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="v-label">Banka Adı</label>
-                      <input required value={acc.bankName} onChange={(e) => updateAccount(i, 'bankName', e.target.value)} className="v-input text-sm" placeholder="Ziraat Bankası" />
+                      <label className="v-label">Banka Adı *</label>
+                      <BankNameSelect required value={acc.bankName} onChange={(v) => updateAccount(i, 'bankName', v)} />
                     </div>
                     <div>
                       <label className="v-label">IBAN</label>

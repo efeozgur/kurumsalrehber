@@ -65,12 +65,15 @@ Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebili
 - **Kur Bilgisi API:** `GET /api/admin/vesayet/exchange-rates` — exchangerate-api.com üzerinden USD/EUR/GBP/CHF kurlarını 1 USD = X TL formatında döndürür; fallback değerler mevcut
 - **Rapor Özet API:** `GET /api/admin/vesayet/reports/summary` — toplam kısıtlı sayısı, aktif/pasif dağılımı, para birimi bazlı bakiye toplamları, banka kırılımı (her bankanın para birimi bazlı bakiyeleri), ortalama bakiye
 - **Admin Panel Entegrasyonu:** Admin sidebar'da "Vesayet" linki (sadece yetkili kullanıcılara gösterilir), admin layout'ta `@ModuleAccess` kontrolü
-- **Vesayet Arayüzü (Light Tema):** Kendi layout'u (üst profil barı + 64px ikon sidebar: Dashboard/Kısıtlı Ara/Kısıtlı Ekle/Banka Hesapları), light Bootstrap teması (#f1f5f9 bg, #0d6efd primary, Inter font), büyük kartlar ve yazılar
-- **Dashboard:** 4 istatistik kartı (toplam kısıtlı/toplam hesap/toplam bakiye/para birimleri), kur bilgisi kartı, hesap bakiye özeti (para birimi bazlı), raporlamalar bölümü
+- **Vesayet Arayüzü (Frogetor Tema):** Kendi layout'u (üst profil barı + 64px ikon sidebar: Dashboard/Kısıtlı Ara/Kısıtlı Ekle/Banka Hesapları/Banka Yönetimi), Frogetor admin teması (#f2f5f7 bg, #5766da primary, Inter font, gradient stat kartları, 7px border-radius, dark sidebar #2f394e)
+- **Dashboard:** 3 gradient stat kartı (mor→mavi, yeşil→mavi, sarı→kırmızı) + 1 normal kart, kur bilgisi kartı (Frogetor renkleri), hesap bakiye özeti, raporlamalar bölümü
 - **Kısıtlı Listesi:** `/vesayet/kisitli` — arama + tablo (ad, TC, dosya no, durum badge, hesap sayısı, düzenle/sil); SUPER_ADMIN silme yetkisi
-- **Kısıtlı Detay:** `/vesayet/kisitli/[id]` — kişisel bilgiler, para birimi bazlı bakiye kartları, banka hesapları tablosu, düzenleme formu
-- **Kısıtlı Ekleme:** `/vesayet/kisitli/new` — TC 11 hane validasyonu, banka hesabı ekleme/çıkarma
+- **Kısıtlı Detay:** `/vesayet/kisitli/[id]` — kişisel bilgiler, "Vesayetten Düştü mü ?" durum kartı (kırmızı/yeşil), para birimi bazlı bakiye kartları, banka hesapları tablosu (satır içi düzenleme: banka adı `BankNameSelect`, IBAN, tutar, para birimi, vade), düzenleme formu
+- **Kısıtlı Ekleme:** `/vesayet/kisitli/new` — TC 11 hane validasyonu, banka hesabı ekleme/çıkarma; kayıt sonrası detay sayfasına yönlendirir
 - **Banka Hesapları:** `/vesayet/hesaplar` — tüm kısıtlılara ait banka hesaplarının merkezi listesi, banka adı/para birimi filtreleme
+- **Banka Yönetimi:** `/vesayet/bankalar` — `Bank` modeli (DB'de saklanır), `BankNameSelect` component'i (DB'den beslenir), liste + ekleme + satır içi düzenleme + silme onayı
+- **Bank Seed:** T. Vakıflar Bankası ve Ziraat Bankası seed ile otomatik oluşturulur; yeni bankalar admin tarafından eklenebilir
+- **Tasarım Değişikliği:** Wowdash → Frogetor (üçüncü tasarım yönü); CSS değişkenleri `--v-primary: #5766da`, `--v-success: #1ecab8`, `--v-danger: #f93b7a`, `--v-bg: #f2f5f7` olarak güncellendi; gradient kartlar (#5766da, #1ecab8, #00bcd4, #fbb624 accent renkleri)
 
 ## Teknoloji
 
@@ -131,7 +134,7 @@ TelefonRehberi/
 │       ├── src/
 │       │   ├── app/
 │   │       │   ├── admin/          # Dashboard (grafikli), contacts, departments (ağaç), titles, tips, users, modules, meal-plans
-│   │       │   ├── vesayet/        # Kısıtlı modülü (dashboard, liste, detay, ekleme, banka hesapları)
+│   │       │   ├── vesayet/        # Kısıtlı modülü (dashboard, liste, detay, ekleme, banka hesapları, banka yönetimi)
 │   │       │   ├── meal-plans/     # Haftalık yemek listesi (public)
 │       │   │   ├── globals.css
 │       │   │   ├── layout.tsx
