@@ -8,6 +8,7 @@ export default function TipsPage() {
   const [tips, setTips] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tipSpeed, setTipSpeed] = useState('4000');
+  const [tipsEnabled, setTipsEnabled] = useState(true);
   const [speedSaved, setSpeedSaved] = useState(false);
 
   const loadTips = async () => {
@@ -19,6 +20,7 @@ export default function TipsPage() {
       ]);
       setTips(tipsRes.data ?? tipsRes);
       if (settingsRes?.data?.tipSpeed) setTipSpeed(settingsRes.data.tipSpeed);
+      if (settingsRes?.data?.tipsEnabled !== undefined) setTipsEnabled(settingsRes.data.tipsEnabled !== 'false');
     } catch {
       setTips([]);
     } finally {
@@ -34,6 +36,16 @@ export default function TipsPage() {
       await api.deleteTip(id);
       loadTips();
     } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleToggleTips = async (val: boolean) => {
+    setTipsEnabled(val);
+    try {
+      await api.updateSetting('tipsEnabled', val ? 'true' : 'false');
+    } catch (err: any) {
+      setTipsEnabled(!val);
       alert(err.message);
     }
   };
@@ -64,38 +76,65 @@ export default function TipsPage() {
         </a>
       </div>
 
-      {/* Speed Setting */}
-      <div className="glass rounded-2xl p-5 mb-6">
+      {/* Show/Hide Toggle */}
+      <div className="glass rounded-2xl p-5 mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-              <Timer className="w-5 h-5 text-amber-400" />
+              <Lightbulb className="w-5 h-5 text-amber-400" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-white">İpucu Geçiş Hızı</h3>
-              <p className="text-xs text-gray-500 mt-0.5">İpuçlarının otomatik geçiş süresi (milisaniye)</p>
+              <h3 className="text-sm font-semibold text-white">İpuçlarını Göster</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Anasayfada ipuçlarının görünmesini aç/kapat</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <input
-              type="number"
-              value={tipSpeed}
-              onChange={(e) => setTipSpeed(e.target.value)}
-              className="w-28 px-4 py-2.5 rounded-xl bg-surface-raised border border-white/[0.08] text-white text-sm text-center focus:border-brand-500/30 focus:ring-2 focus:ring-brand-500/10 outline-none transition-all"
-              min={500}
-              step={500}
-            />
-            <button onClick={handleSpeedSave} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-              speedSaved
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                : 'bg-brand-500/15 text-brand-400 border border-brand-500/30 hover:bg-brand-500/20'
-            }`}>
-              <Save className="w-4 h-4" />
-              {speedSaved ? 'Kaydedildi' : 'Kaydet'}
-            </button>
-          </div>
+          <button
+            onClick={() => handleToggleTips(!tipsEnabled)}
+            className={`relative w-12 h-6 rounded-full transition-colors ${
+              tipsEnabled ? 'bg-brand-500' : 'bg-white/10'
+            }`}
+          >
+            <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+              tipsEnabled ? 'translate-x-6' : 'translate-x-0.5'
+            }`} />
+          </button>
         </div>
       </div>
+
+      {/* Speed Setting */}
+      {tipsEnabled && (
+        <div className="glass rounded-2xl p-5 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                <Timer className="w-5 h-5 text-amber-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-white">İpucu Geçiş Hızı</h3>
+                <p className="text-xs text-gray-500 mt-0.5">İpuçlarının otomatik geçiş süresi (milisaniye)</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                value={tipSpeed}
+                onChange={(e) => setTipSpeed(e.target.value)}
+                className="w-28 px-4 py-2.5 rounded-xl bg-surface-raised border border-white/[0.08] text-white text-sm text-center focus:border-brand-500/30 focus:ring-2 focus:ring-brand-500/10 outline-none transition-all"
+                min={500}
+                step={500}
+              />
+              <button onClick={handleSpeedSave} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                speedSaved
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  : 'bg-brand-500/15 text-brand-400 border border-brand-500/30 hover:bg-brand-500/20'
+              }`}>
+                <Save className="w-4 h-4" />
+                {speedSaved ? 'Kaydedildi' : 'Kaydet'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="glass rounded-2xl overflow-hidden">
         {loading ? (

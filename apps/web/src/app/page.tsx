@@ -68,6 +68,7 @@ export default function HomePage() {
   const [tips, setTips] = useState<any[]>([]);
   const [activeTip, setActiveTip] = useState(0);
   const [tipSpeed, setTipSpeed] = useState(4000);
+  const [tipsEnabled, setTipsEnabled] = useState(true);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -87,6 +88,7 @@ export default function HomePage() {
     });
     api.getSettings().then((res) => {
       if (res?.data?.tipSpeed) setTipSpeed(Number(res.data.tipSpeed));
+      if (res?.data?.tipsEnabled !== undefined) setTipsEnabled(res.data.tipsEnabled !== 'false');
     }).catch(() => {});
     api.getFavorites(1, 50).then((res) => {
       setFavorites(res.data);
@@ -408,7 +410,7 @@ export default function HomePage() {
             </div>
 
             {/* Tips Carousel */}
-            {tips.length > 0 && (
+            {tips.length > 0 && tipsEnabled && (
               <div className="mt-8 max-w-xl mx-auto">
                 <div className="relative overflow-hidden rounded-2xl bg-white/[0.03] border border-white/[0.06] px-6 py-4 min-h-[72px] flex items-center">
                   <div className="flex items-center gap-4 w-full">
