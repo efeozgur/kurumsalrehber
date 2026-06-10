@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Contact, Department } from '@/types';
 import {
   Search, Grid3X3, List, Building2, Phone, Mail, User,
-  ArrowRight, Sparkles, ChevronLeft, ChevronRight, X, Users, BadgeCheck, Lightbulb, Star, Clock, Trash2, LayoutDashboard, Pencil, Utensils,
+  ArrowRight, Sparkles, ChevronLeft, ChevronRight, X, Users, BadgeCheck, Lightbulb, Star, Clock, Trash2, LayoutDashboard, Pencil, Utensils, Wrench,
 } from 'lucide-react';
 
 function getInitials(f: string, l: string) { return `${f.charAt(0)}${l.charAt(0)}`.toUpperCase(); }
@@ -386,6 +386,17 @@ export default function HomePage() {
               >
                 <Utensils className="w-4 h-4" />
                 <span className="hidden sm:inline">Yemek Listesi</span>
+              </a>
+            )}
+            {isAuthenticated && (
+              <a
+                href="/teknik-servis"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-300
+                           border border-white/[0.08] hover:border-amber-500/30 hover:text-amber-400
+                           hover:bg-amber-500/5 transition-all duration-200"
+              >
+                <Wrench className="w-4 h-4" />
+                <span className="hidden sm:inline">Teknik Servis</span>
               </a>
             )}
             {isAuthenticated && user?.role === 'USER' ? (
