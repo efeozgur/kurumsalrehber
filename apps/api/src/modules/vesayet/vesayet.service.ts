@@ -130,7 +130,7 @@ export class VesayetService {
   async getExchangeRates() {
     try {
       const { data } = await firstValueFrom(
-        this.http.get('https://api.exchangerate-api.com/v4/latest/TRY'),
+        this.http.get('https://open.er-api.com/v6/latest/TRY'),
       );
       // API returns rates per 1 TRY (e.g. 1 TRY = 0.0217 USD).
       // Invert to show how many TL per 1 foreign currency (e.g. 1 USD = 46.12 TL).
@@ -140,7 +140,7 @@ export class VesayetService {
         EUR: invert(data.rates.EUR),
         GBP: invert(data.rates.GBP),
         CHF: invert(data.rates.CHF),
-        updatedAt: data.date,
+        updatedAt: data.time_last_update_utc,
       };
     } catch {
       return {
