@@ -93,6 +93,7 @@ export default function HomePage() {
   const [mealLoading, setMealLoading] = useState(true);
   const [todayMealEnabled, setTodayMealEnabled] = useState(true);
   const [mealPlansEnabled, setMealPlansEnabled] = useState(false);
+  const [teknikServisEnabled, setTeknikServisEnabled] = useState(false);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -128,6 +129,9 @@ export default function HomePage() {
         setTodayMeal(body);
       }
     }).catch(() => {}).finally(() => setMealLoading(false));
+    api.getModuleStatus('teknik-servis').then((r) => {
+      setTeknikServisEnabled(r.enabled !== false);
+    }).catch(() => setTeknikServisEnabled(true));
   }, []);
 
   // Auto-rotate tips
@@ -388,7 +392,7 @@ export default function HomePage() {
                 <span className="hidden sm:inline">Yemek Listesi</span>
               </a>
             )}
-            {isAuthenticated && (
+            {isAuthenticated && teknikServisEnabled && (
               <a
                 href="/teknik-servis"
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-300

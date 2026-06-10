@@ -19,7 +19,8 @@ apps/
 ## Modüller
 
 | Modül | Açıklama |
-|---|---|
+|---|---|---|
+| `teknik-servis` | Arıza takip sistemi (kullanıcı bildirim, teknisyen yönetimi, dashboard) |
 | `meal-plans` | Haftalık yemek listesi yönetimi |
 | `vesayet` | Vesayet kısıtlı ve banka hesabı yönetimi |
 | `rehber-auth` | Rehber kimlik doğrulama (aktifse giriş zorunlu) |
@@ -39,6 +40,8 @@ apps/
 - Yemek listesi planlama
 - Analitik (arama, görüntüleme, popüler kişiler)
 - İpuçları (dönen bant)
+- Teknik Servis arıza takip sistemi (bildirim, atama, çözüm, dashboard)
+- Modül aç/kapa (her modül bağımsız aktif/pasif edilebilir)
 - Responsive tasarım (dark theme)
 
 ## Kurulum
