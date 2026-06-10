@@ -5,16 +5,14 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  Wrench, PlusCircle, List, Home, LogOut, Menu, X, Phone, ArrowLeft,
+  Wrench, PlusCircle, List, Home, LogOut, Menu, X, Phone, ArrowLeft, Clock, TrendingUp,
 } from 'lucide-react';
-import { api } from '@/lib/api';
-
 const getNavItems = (role?: string) => {
   if (role === 'TEKNIK_SERVIS') {
     return [
-      { href: '/teknik-servis/yonetim', label: 'Tüm Kayıtlar', icon: List },
-      { href: '/teknik-servis/ekle', label: 'Arıza Kaydı', icon: PlusCircle },
-      { href: '/teknik-servis/kayitlarim', label: 'Kayıtlarım', icon: Home },
+      { href: '/teknik-servis/yonetim', label: 'Dashboard', icon: Home },
+      { href: '/teknik-servis/yonetim/kayitlar', label: 'Tüm Kayıtlar', icon: List },
+      { href: '/teknik-servis/kayitlarim', label: 'Kayıtlarım', icon: Clock },
     ];
   }
   return [
@@ -99,12 +97,21 @@ export default function TeknikServisLayout({ children }: { children: React.React
                 </div>
                 <Link
                   href="/teknik-servis/yonetim"
-                  className={`sidebar-item ${pathname.startsWith('/teknik-servis/yonetim') ? 'sidebar-item-active' : 'sidebar-item-inactive'}`}
+                  className={`sidebar-item ${pathname === '/teknik-servis/yonetim' ? 'sidebar-item-active' : 'sidebar-item-inactive'}`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  Dashboard
+                  {pathname === '/teknik-servis/yonetim' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                </Link>
+                <Link
+                  href="/teknik-servis/yonetim/kayitlar"
+                  className={`sidebar-item ${pathname.startsWith('/teknik-servis/yonetim/kayitlar') ? 'sidebar-item-active' : 'sidebar-item-inactive'}`}
                   onClick={() => setSidebarOpen(false)}
                 >
                   <List className="w-4 h-4" />
                   Tüm Kayıtlar
-                  {pathname.startsWith('/teknik-servis/yonetim') && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                  {pathname.startsWith('/teknik-servis/yonetim/kayitlar') && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400" />}
                 </Link>
               </>
             ) : null}

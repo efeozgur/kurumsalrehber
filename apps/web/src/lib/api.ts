@@ -513,6 +513,11 @@ export const api = {
     return res.data ?? res;
   },
 
+  getDashboard: async () => {
+    const res = await request<any>('/teknik-servis/admin/dashboard');
+    return res.data ?? res;
+  },
+
   getRequest: async (id: number) => {
     const res = await request<any>(`/teknik-servis/${id}`);
     return res.data ?? res;

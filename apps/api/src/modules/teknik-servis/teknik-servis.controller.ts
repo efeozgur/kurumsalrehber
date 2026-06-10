@@ -113,6 +113,11 @@ export class TeknikServisController {
 
   // ─── Teknik Personel / Admin ───────────────────────
 
+  @Get('admin/dashboard')
+  getDashboard() {
+    return this.service.getDashboard();
+  }
+
   @Get('admin/all')
   findAll() {
     return this.service.findAll();

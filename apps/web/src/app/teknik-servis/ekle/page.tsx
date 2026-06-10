@@ -1,12 +1,20 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { Camera, Send, X } from 'lucide-react';
 
 export default function EklePage() {
+  const { user } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (user?.role === 'TEKNIK_SERVIS') {
+      router.push('/teknik-servis/yonetim');
+    }
+  }, [user, router]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<File | null>(null);

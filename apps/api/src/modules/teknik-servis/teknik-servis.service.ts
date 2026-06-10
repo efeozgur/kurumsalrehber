@@ -206,6 +206,85 @@ export class TeknikServisService {
     return updated;
   }
 
+  async getDashboard() {
+    const all = await this.prisma.serviceRequest.findMany({
+      select: {
+        id: true,
+        status: true,
+        resolvedBy: true,
+        reportedById: true,
+        createdAt: true,
+        title: true,
+      },
+    });
+
+    const total = all.length;
+    const statusCounts = { BEKLIYOR: 0, ISLEMDE: 0, COZULDU: 0, KAPATILDI: 0 };
+    const reporterMap = new Map<number, { id: number; username: string; count: number }>();
+    const techMap = new Map<number, { id: number; username: string; count: number }>();
+    const monthlyMap = new Map<string, number>();
+
+    for (const r of all) {
+      statusCounts[r.status as keyof typeof statusCounts]++;
+
+      const monthKey = r.createdAt.toISOString().slice(0, 7);
+      monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + 1);
+    }
+
+    // Reporter details
+    const reporterIds = [...new Set(all.map((r) => r.reportedById))];
+    const reporters = await this.prisma.user.findMany({
+      where: { id: { in: reporterIds } },
+      select: { id: true, username: true },
+    });
+    const reporterLookup = new Map(reporters.map((u) => [u.id, u]));
+    for (const r of all) {
+      const u = reporterLookup.get(r.reportedById);
+      if (!u) continue;
+      const existing = reporterMap.get(r.reportedById);
+      if (existing) {
+        existing.count++;
+      } else {
+        reporterMap.set(r.reportedById, { ...u, count: 1 });
+      }
+    }
+
+    // Tech performance (resolvedBy)
+    const techIds = [...new Set(all.filter((r) => r.resolvedBy).map((r) => r.resolvedBy!))];
+    const techs = await this.prisma.user.findMany({
+      where: { id: { in: techIds } },
+      select: { id: true, username: true },
+    });
+    const techLookup = new Map(techs.map((u) => [u.id, u]));
+    for (const r of all) {
+      if (!r.resolvedBy) continue;
+      const u = techLookup.get(r.resolvedBy);
+      if (!u) continue;
+      const existing = techMap.get(r.resolvedBy);
+      if (existing) {
+        existing.count++;
+      } else {
+        techMap.set(r.resolvedBy, { ...u, count: 1 });
+      }
+    }
+
+    const monthlyTrend = [...monthlyMap.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, count]) => ({ month, count }));
+
+    return {
+      total,
+      statusCounts,
+      topReporters: [...reporterMap.values()]
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10),
+      techPerformance: [...techMap.values()]
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10),
+      monthlyTrend,
+    };
+  }
+
   async searchSolutions(q: string) {
     if (!q || q.length < 2) return [];
     return this.prisma.serviceSolution.findMany({
