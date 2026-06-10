@@ -38,6 +38,7 @@ async function main() {
     { key: 'meal-plans', name: 'Yemek Listesi', description: 'Haftalık yemek listesi yönetimi' },
     { key: 'vesayet', name: 'Vesayet', description: 'Vesayet kısıtlı ve banka hesabı yönetimi' },
     { key: 'rehber-auth', name: 'Rehber Kimlik Doğrulama', description: 'Aktif edildiğinde telefon rehberini kullanmak için giriş yapmak zorunludur.', enabled: false },
+    { key: 'teknik-servis', name: 'Teknik Servis', description: 'Aktif edildiğinde kullanıcılar arıza bildirimi yapabilir.', enabled: false },
   ];
   for (const mod of defaultModules) {
     await prisma.module.upsert({
@@ -62,6 +63,24 @@ async function main() {
       });
     }
     console.log('Varsayılan bankalar oluşturuldu.');
+  }
+
+  // Varsayılan teknik servis çözüm önerileri
+  const solutionCount = await prisma.serviceSolution.count();
+  if (solutionCount === 0) {
+    const defaultSolutions = [
+      { title: 'Yazıcı kağıt sıkışması', description: 'Kağıdı çekmeceden çıkarın, sıkışan kağıdı yavaşça düz bir şekilde çekin. Yazıcıyı kapatıp açın.', keywords: 'yazıcı,kağıt,sıkışma,printer' },
+      { title: 'Bilgisayar açılmıyor', description: 'Güç kablosunu kontrol edin, prize takılı olduğundan emin olun. Güç düğmesine basılı tutun.', keywords: 'bilgisayar,açılmıyor,güç,pc' },
+      { title: 'İnternet bağlantısı yok', description: 'Modemi fişten çekip 30 saniye bekleyin, tekrar takın. Ethernet kablosunu kontrol edin.', keywords: 'internet,bağlantı,modem,wifi,ağ' },
+      { title: 'Yazıcı çıktı almıyor', description: 'Toneri kontrol edin, kağıt olup olmadığını kontrol edin. Yazıcıyı yeniden başlatın.', keywords: 'yazıcı,çıktı,toner,baskı' },
+      { title: 'Monitör görüntü vermiyor', description: 'Kablo bağlantılarını kontrol edin. Monitörün güç ışığını kontrol edin. Farklı bir kablo deneyin.', keywords: 'monitör,görüntü,ekran,kablo' },
+      { title: 'Klavye çalışmıyor', description: 'USB bağlantısını kontrol edin, farklı bir porta takın. Bilgisayarı yeniden başlatın.', keywords: 'klavye,tuş,çalışmıyor,usb' },
+      { title: 'Fare imleci hareket etmiyor', description: 'Pilini kontrol edin (kablosuzsa). USB bağlantısını kontrol edin. Farklı bir yüzeyde deneyin.', keywords: 'fare,mouse,imleç,çalışmıyor' },
+    ];
+    for (const sol of defaultSolutions) {
+      await prisma.serviceSolution.create({ data: sol });
+    }
+    console.log('Varsayılan çözüm önerileri oluşturuldu.');
   }
 
   // Tüm kullanıcılara modül izinlerini ver

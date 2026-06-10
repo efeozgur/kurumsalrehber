@@ -13,6 +13,7 @@ import { MealPlanModule } from './modules/meal-plans/meal-plan.module';
 import { FoodItemsModule } from './modules/food-items/food-items.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { VesayetModule } from './modules/vesayet/vesayet.module';
+import { TeknikServisModule } from './modules/teknik-servis/teknik-servis.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { VesayetModule } from './modules/vesayet/vesayet.module';
     AnalyticsModule,
     VesayetModule,
     ImportModule,
+    TeknikServisModule,
   ],
 })
 export class AppModule {}

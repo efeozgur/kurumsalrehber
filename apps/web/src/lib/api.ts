@@ -469,4 +469,104 @@ export const api = {
     const res = await request<any>('/admin/vesayet/reports/summary');
     return res.data ?? res;
   },
+
+  // ─── Teknik Servis ────────────────────────────────────────
+
+  createServiceRequest: async (title: string, description: string, image?: File) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    if (image) formData.append('image', image);
+    const res = await fetch(`${API_BASE}/teknik-servis`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: 'Arıza kaydı hatası' }));
+      throw new Error(err.message);
+    }
+    return res.json();
+  },
+
+  getMyRequests: async () => {
+    const res = await request<any>('/teknik-servis/my');
+    return res.data ?? res;
+  },
+
+  getAllRequests: async () => {
+    const res = await request<any>('/teknik-servis/admin/all');
+    return res.data ?? res;
+  },
+
+  getRequest: async (id: number) => {
+    const res = await request<any>(`/teknik-servis/${id}`);
+    return res.data ?? res;
+  },
+
+  updateRequestStatus: (id: number, status: string) =>
+    request(`/teknik-servis/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+
+  assignToSelf: (id: number) =>
+    request(`/teknik-servis/admin/${id}/assign`, { method: 'PATCH' }),
+
+  adminUpdateStatus: (id: number, status: string) =>
+    request(`/teknik-servis/admin/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+
+  resolveRequest: (id: number, resolution: string) =>
+    request(`/teknik-servis/admin/${id}/resolve`, {
+      method: 'PATCH',
+      body: JSON.stringify({ resolution }),
+    }),
+
+  searchSolutions: async (q: string) => {
+    const res = await request<any>(`/teknik-servis/solutions?q=${encodeURIComponent(q)}`);
+    return res.data ?? res;
+  },
+
+  getTechAssignments: async () => {
+    const res = await request<any>('/admin/teknik-servis/assignments');
+    return res.data ?? res;
+  },
+
+  assignTechUser: (userId: number) =>
+    request('/admin/teknik-servis/assignments', {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
+    }),
+
+  removeTechUser: (userId: number) =>
+    request(`/admin/teknik-servis/assignments/${userId}`, { method: 'DELETE' }),
+
+  getTechSettings: async () => {
+    const res = await request<any>('/admin/teknik-servis/settings');
+    return res.data ?? res;
+  },
+
+  updateTechSettings: (closedBy: string) =>
+    request('/admin/teknik-servis/settings', {
+      method: 'PATCH',
+      body: JSON.stringify({ closedBy }),
+    }),
+
+  getTechSolutions: async () => {
+    const res = await request<any>('/admin/teknik-servis/solutions');
+    return res.data ?? res;
+  },
+
+  createTechSolution: (data: { title: string; description: string; keywords: string }) =>
+    request('/admin/teknik-servis/solutions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  deleteTechSolution: (id: number) =>
+    request(`/admin/teknik-servis/solutions/${id}`, { method: 'DELETE' }),
 };

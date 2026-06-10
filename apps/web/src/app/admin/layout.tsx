@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useRouter, usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, Users, Building2, UserCog, BadgeCheck, Lightbulb, LogOut, Menu, X, Phone, Search, ChevronDown, Bell, Home, Utensils, Puzzle, Scale, Upload,
+  LayoutDashboard, Users, Building2, UserCog, BadgeCheck, Lightbulb, LogOut, Menu, X, Phone, Search, ChevronDown, Bell, Home, Utensils, Puzzle, Scale, Upload, Wrench,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -37,12 +37,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   const showVesayet = user?.role === 'SUPER_ADMIN' || user?.role === 'VESAYET_ADMIN';
+  const showTeknikServis = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
   const menuItems = [
     ...baseMenuItems.filter((item) => {
       if (item.href === '/admin/meal-plans') return mealPlansEnabled;
       return true;
     }),
     ...(showVesayet ? [{ href: '/vesayet', label: 'Vesayet', icon: Scale }] : []),
+    ...(showTeknikServis ? [{ href: '/teknik-servis/yonetim', label: 'Teknik Servis', icon: Wrench }] : []),
   ];
 
   useEffect(() => {
