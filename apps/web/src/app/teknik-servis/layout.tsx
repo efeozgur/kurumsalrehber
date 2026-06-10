@@ -81,7 +81,7 @@ export default function TeknikServisLayout({ children }: { children: React.React
               );
             })}
 
-            {user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' ? (
+            {user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' || user?.role === 'TEKNIK_SERVIS' ? (
               <>
                 <div className="pt-4 pb-2">
                   <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-600">Yönetim</p>

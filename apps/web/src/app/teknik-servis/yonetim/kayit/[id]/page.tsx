@@ -29,7 +29,7 @@ export default function YonetimKayitDetayPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [resolution, setResolution] = useState('');
 
-  const isTech = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
+  const isTech = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' || user?.role === 'TEKNIK_SERVIS';
 
   const fetchRequest = () => {
     if (!id) return;

@@ -37,7 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   const showVesayet = user?.role === 'SUPER_ADMIN' || user?.role === 'VESAYET_ADMIN';
-  const showTeknikServis = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
+  const showTeknikServis = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' || user?.role === 'TEKNIK_SERVIS';
   const menuItems = [
     ...baseMenuItems.filter((item) => {
       if (item.href === '/admin/meal-plans') return mealPlansEnabled;
@@ -150,7 +150,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-white truncate">{user?.username}</p>
-                <p className="text-xs text-gray-500">{user?.role === 'SUPER_ADMIN' ? 'Süper Admin' : user?.role === 'USER' ? 'Personel' : 'Admin'}</p>
+                <p className="text-xs text-gray-500">{user?.role === 'SUPER_ADMIN' ? 'Süper Admin' : user?.role === 'USER' ? 'Personel' : user?.role === 'TEKNIK_SERVIS' ? 'Teknik Servis' : 'Admin'}</p>
               </div>
               <button
                 onClick={logout}
