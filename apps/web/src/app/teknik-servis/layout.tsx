@@ -49,7 +49,6 @@ export default function TeknikServisLayout({ children }: { children: React.React
 
   if (!isAuthenticated) return null;
 
-  const isDetailPage = pathname.startsWith('/teknik-servis/kayit/') && !pathname.startsWith('/teknik-servis/kayitlarim');
   const navItems = getNavItems(user?.role);
   const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
   const isUser = user?.role === 'USER';
