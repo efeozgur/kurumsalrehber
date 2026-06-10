@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth';
 import UserPicker from '@/components/UserPicker';
 import {
   ArrowLeft, Clock, CheckCircle, AlertTriangle, User, Calendar,
-  UserCheck, Send, XCircle, UserPlus,
+  UserCheck, Send, XCircle, UserPlus, Trash2,
 } from 'lucide-react';
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -69,6 +69,17 @@ export default function YonetimKayitDetayPage() {
     try {
       await api.assignToUser(Number(id), targetUser.id);
       fetchRequest();
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Bu kaydı kalıcı olarak silmek istediğinize emin misiniz?')) return;
+    setActionLoading(true);
+    try {
+      await api.deleteRequest(Number(id));
+      router.push('/teknik-servis/yonetim/kayitlar');
     } finally {
       setActionLoading(false);
     }
@@ -276,6 +287,20 @@ export default function YonetimKayitDetayPage() {
                 <User className="w-4 h-4 text-gray-500" />
                 {req.assignedTo.username ?? `#${req.assignedTo.id}`}
               </div>
+            </div>
+          )}
+
+          {/* Delete */}
+          {isTech && req.status === 'KAPATILDI' && (
+            <div className="rounded-2xl bg-surface-raised border border-red-500/20 p-4">
+              <button
+                onClick={handleDelete}
+                disabled={actionLoading}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-sm font-medium transition-all"
+              >
+                <Trash2 className="w-4 h-4" />
+                {actionLoading ? 'Siliniyor...' : 'Bu Kaydı Sil'}
+              </button>
             </div>
           )}
         </div>

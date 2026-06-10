@@ -547,6 +547,15 @@ export const api = {
       body: JSON.stringify({ resolution }),
     }),
 
+  deleteRequest: (id: number) =>
+    request(`/teknik-servis/admin/${id}`, { method: 'DELETE' }),
+
+  batchDeleteRequests: (ids: number[]) =>
+    request('/teknik-servis/admin/batch-delete', {
+      method: 'POST',
+      body: JSON.stringify({ ids }),
+    }),
+
   searchSolutions: async (q: string) => {
     const res = await request<any>(`/teknik-servis/solutions?q=${encodeURIComponent(q)}`);
     return res.data ?? res;

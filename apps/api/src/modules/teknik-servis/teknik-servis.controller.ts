@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -136,6 +137,19 @@ export class TeknikServisController {
   @Patch('admin/:id/status')
   adminUpdateStatus(@Param('id') id: string, @Body('status') status: string, @Request() req) {
     return this.service.updateStatus(+id, status, req.user?.id);
+  }
+
+  @Delete('admin/:id')
+  deleteRequest(@Param('id') id: string, @Request() req) {
+    return this.service.deleteRequest(+id, req.user?.id);
+  }
+
+  @Post('admin/batch-delete')
+  batchDelete(@Body('ids') ids: number[], @Request() req) {
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      throw new BadRequestException('Silinecek kayıt ID\'leri gerekli');
+    }
+    return this.service.batchDeleteRequests(ids, req.user?.id);
   }
 
   @Patch('admin/:id/resolve')

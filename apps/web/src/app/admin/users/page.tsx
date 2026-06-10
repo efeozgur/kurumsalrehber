@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { User } from '@/types';
-import { Plus, Trash2, UserCog, Shield, RefreshCw, Search, ChevronLeft, ChevronRight, Wrench, X } from 'lucide-react';
+import { Plus, Trash2, UserCog, Shield, RefreshCw, Search, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: 'Süper Admin',
@@ -115,8 +115,7 @@ export default function UsersPage() {
     }
   };
 
-  const handleToggleTeknik = async (id: number, currentRole: string) => {
-    const newRole = currentRole === 'TEKNIK_SERVIS' ? 'USER' : 'TEKNIK_SERVIS';
+  const handleRoleChange = async (id: number, newRole: string) => {
     try {
       await api.updateUserRole(id, newRole);
       load(page, searchQuery);
@@ -256,12 +255,6 @@ export default function UsersPage() {
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {getRoleBadge(user.role)}
-                      {user.role === 'TEKNIK_SERVIS' && (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium bg-amber-500/10 text-amber-400">
-                          <Wrench className="w-3 h-3" />
-                          Teknik
-                        </span>
-                      )}
                     </div>
                   </td>
                   <td className="px-5 py-3.5 text-gray-500 hidden md:table-cell">
@@ -269,27 +262,30 @@ export default function UsersPage() {
                   </td>
                   <td className="px-5 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {/* TEKNIK_SERVIS toggle */}
-                      {isSuper && (user.role === 'USER' || user.role === 'TEKNIK_SERVIS') && (
-                        <button
-                          onClick={() => handleToggleTeknik(user.id, user.role)}
-                          className={`p-2 rounded-lg transition-all ${
-                            user.role === 'TEKNIK_SERVIS'
-                              ? 'text-amber-400 hover:bg-amber-500/10'
-                              : 'text-gray-500 hover:text-amber-400 hover:bg-amber-500/10'
-                          }`}
-                          title={user.role === 'TEKNIK_SERVIS' ? 'Teknik yetkiyi kaldır' : 'Teknik Servis yap'}
-                        >
-                          <Wrench className="w-4 h-4" />
-                        </button>
-                      )}
-                      {isSuper && user.role !== 'USER' && user.role !== 'TEKNIK_SERVIS' && (
-                        <button
-                          onClick={() => handleDelete(user.id, user.username)}
-                          className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                      {isSuper && (
+                        <>
+                          <select
+                            value=""
+                            onChange={(e) => { if (e.target.value) handleRoleChange(user.id, e.target.value); }}
+                            className="px-2 py-1.5 rounded-lg text-xs bg-surface border border-white/[0.08] text-gray-400 hover:text-white focus:outline-none focus:border-brand-500/40 transition-all appearance-none cursor-pointer"
+                          >
+                            <option value="" disabled className="bg-surface">Yetki Ver</option>
+                            <option value="USER" className="bg-surface">Personel</option>
+                            <option value="TEKNIK_SERVIS" className="bg-surface">Teknik Servis</option>
+                            <option value="ADMIN" className="bg-surface">Admin</option>
+                            <option value="SUPER_ADMIN" className="bg-surface">Süper Admin</option>
+                            <option value="VESAYET_ADMIN" className="bg-surface">Vesayet Admin</option>
+                          </select>
+                          {user.role !== 'USER' && (
+                            <button
+                              onClick={() => handleDelete(user.id, user.username)}
+                              className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                              title="Kullanıcıyı Sil"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </td>

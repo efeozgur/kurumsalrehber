@@ -285,6 +285,33 @@ export class TeknikServisService {
     };
   }
 
+  async deleteRequest(id: number, userId: number) {
+    const isTech = await this.isTechUser(userId);
+    if (!isTech) throw new ForbiddenException('Bu işlem için teknik personel yetkisi gerekli');
+
+    const request = await this.findOne(id);
+    if (request.status !== 'KAPATILDI') {
+      throw new BadRequestException('Sadece kapatılmış kayıtlar silinebilir');
+    }
+
+    await this.prisma.serviceRequest.delete({ where: { id } });
+    return { message: 'Kayıt silindi' };
+  }
+
+  async batchDeleteRequests(ids: number[], userId: number) {
+    const isTech = await this.isTechUser(userId);
+    if (!isTech) throw new ForbiddenException('Bu işlem için teknik personel yetkisi gerekli');
+
+    const result = await this.prisma.serviceRequest.deleteMany({
+      where: {
+        id: { in: ids },
+        status: 'KAPATILDI',
+      },
+    });
+
+    return { message: `${result.count} kayıt silindi`, count: result.count };
+  }
+
   async searchSolutions(q: string) {
     if (!q || q.length < 2) return [];
     return this.prisma.serviceSolution.findMany({
