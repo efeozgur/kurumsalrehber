@@ -73,6 +73,11 @@ export class TeknikServisController {
     return this.service.findByUser(req.user.id);
   }
 
+  @Get('solutions/all')
+  getAllSolutions() {
+    return this.service.getSolutions();
+  }
+
   @Get('solutions')
   @ApiQuery({ name: 'q', required: true })
   searchSolutions(@Query('q') q: string) {

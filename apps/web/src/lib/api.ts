@@ -556,6 +556,11 @@ export const api = {
       body: JSON.stringify({ ids }),
     }),
 
+  getAllSolutions: async () => {
+    const res = await request<any>('/teknik-servis/solutions/all');
+    return res.data ?? res;
+  },
+
   searchSolutions: async (q: string) => {
     const res = await request<any>(`/teknik-servis/solutions?q=${encodeURIComponent(q)}`);
     return res.data ?? res;
