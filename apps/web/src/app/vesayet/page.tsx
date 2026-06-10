@@ -296,6 +296,48 @@ export default function VesayetDashboard() {
           </div>
         )}
 
+        {/* ─── TL Bakiyesi ─── */}
+        {(balanceByCurrency['TL'] || 0) > 0 && (
+          <div className="v-card" style={{ marginBottom: '24px', padding: '0', overflow: 'hidden' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '28px',
+              background: 'linear-gradient(120deg, #1ecab8 0%, #14a88f 100%)',
+              padding: '28px 36px', color: '#fff',
+            }}>
+              <div style={{
+                width: '64px', height: '64px', borderRadius: '50%',
+                background: 'rgba(255,255,255,0.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <Banknote className="w-7 h-7 text-white" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '13px', opacity: 0.8, fontWeight: 500, letterSpacing: '0.3px' }}>TL BAKİYESİ</div>
+                <div style={{ fontSize: '36px', fontWeight: 700, lineHeight: '1.1', marginTop: '4px', letterSpacing: '-0.5px' }}>
+                  {(balanceByCurrency['TL'] || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL
+                </div>
+                <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '6px' }}>
+                  {wards.reduce((s, w) => s + w.bankAccounts.filter(a => a.currency === 'TL').length, 0)} TL hesap,{' '}
+                  {report?.averageByCurrency?.['TL'] ? `ort. ${report.averageByCurrency['TL'].toLocaleString('tr-TR', { maximumFractionDigits: 0 })} TL` : ''}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontSize: '12px', opacity: 0.7 }}>Toplam Bakiye İçindeki Payı</div>
+                <div style={{ fontSize: '22px', fontWeight: 700 }}>
+                  {(() => {
+                    const totalAll = (balanceByCurrency['TL'] || 0) +
+                      ((balanceByCurrency['USD'] || 0) * (rates?.USD || 1)) +
+                      ((balanceByCurrency['EUR'] || 0) * (rates?.EUR || 1));
+                    const share = totalAll > 0 ? ((balanceByCurrency['TL'] || 0) / totalAll) * 100 : 0;
+                    return `%${share.toFixed(1)}`;
+                  })()}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
           <div className="v-card">
             <div className="v-section-header">
