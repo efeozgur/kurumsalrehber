@@ -221,6 +221,82 @@ export default function VesayetDashboard() {
           </div>
         </div>
 
+        {/* ─── Kur Karşılığı ─── */}
+        {rates && (balanceByCurrency['USD'] || balanceByCurrency['EUR']) && (
+          <div className="v-card" style={{ marginBottom: '24px' }}>
+            <div className="v-section-header">
+              <div className="v-section-icon" style={{ background: 'linear-gradient(120deg, rgb(123, 120, 201) 0px, rgb(96, 198, 243) 100%)' }}>
+                <DollarSign className="w-5 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="v-section-title">Kur Karşılığı</h3>
+                <p className="v-section-desc">Yabancı para bakiyelerinin TL değeri</p>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+              {(['USD', 'EUR'] as const).map(cur => {
+                const amount = balanceByCurrency[cur] || 0;
+                if (amount === 0) return null;
+                const rate = cur === 'USD' ? rates.USD : rates.EUR;
+                const tlValue = amount * rate;
+                return (
+                  <div key={cur} style={{
+                    padding: '20px', borderRadius: '7px',
+                    background: cur === 'USD' ? 'rgba(87,102,218,0.06)' : 'rgba(249,59,122,0.06)',
+                    border: `1px solid ${cur === 'USD' ? 'rgba(87,102,218,0.15)' : 'rgba(249,59,122,0.15)'}`,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                      <div style={{
+                        width: '40px', height: '40px', borderRadius: '7px',
+                        background: cur === 'USD' ? '#5766da' : '#f93b7a',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {cur === 'USD' ? <DollarSign className="w-5 h-5 text-white" /> : <Euro className="w-5 h-5 text-white" />}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#212529' }}>{cur === 'USD' ? 'Dolar' : 'Euro'}</div>
+                        <div style={{ fontSize: '11px', color: '#676c79' }}>1 {cur} = {rate.toFixed(4)} TL</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: '12px', borderTop: '1px solid #e9ecef' }}>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#676c79' }}>Bakiye</div>
+                        <div style={{ fontSize: '16px', fontWeight: 700, color: '#212529' }}>{amount.toLocaleString('tr-TR')} {cur}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '12px', color: '#676c79' }}>TL Değeri</div>
+                        <div style={{ fontSize: '20px', fontWeight: 700, color: cur === 'USD' ? '#5766da' : '#f93b7a' }}>
+                          {tlValue.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} TL
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {(() => {
+                const totalTL = (balanceByCurrency['TL'] || 0) +
+                  (balanceByCurrency['USD'] || 0) * rates.USD +
+                  (balanceByCurrency['EUR'] || 0) * rates.EUR;
+                return (
+                  <div style={{
+                    padding: '20px', borderRadius: '7px',
+                    background: 'linear-gradient(120deg, rgb(0, 231, 149) 0px, rgb(0, 149, 226) 100%)',
+                    color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                  }}>
+                    <div style={{ fontSize: '12px', opacity: 0.85 }}>Toplam TL Değer</div>
+                    <div style={{ fontSize: '24px', fontWeight: 700, marginTop: '4px' }}>
+                      {totalTL.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} TL
+                    </div>
+                    <div style={{ fontSize: '11px', opacity: 0.7, marginTop: '4px' }}>
+                      TL + {(['USD', 'EUR'] as const).filter(c => (balanceByCurrency[c] || 0) > 0).map(c => `${balanceByCurrency[c]?.toLocaleString('tr-TR')} ${c} × ${(c === 'USD' ? rates.USD : rates.EUR).toFixed(4)}`).join(' + ')}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
           <div className="v-card">
             <div className="v-section-header">
