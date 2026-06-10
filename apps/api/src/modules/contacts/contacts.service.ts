@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 
 const TURKISH_MAP: Record<string, string> = {
@@ -127,6 +128,7 @@ export class ContactsService {
   async create(data: {
     firstName: string;
     lastName: string;
+    sicilNo?: string;
     titleId?: number;
     phoneInternal?: string;
     phoneMobile?: string;
@@ -134,9 +136,43 @@ export class ContactsService {
     avatar?: string;
     departmentId?: number;
   }) {
-    return this.prisma.contact.create({
-      data,
+    const contact = await this.prisma.contact.create({
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        sicilNo: data.sicilNo,
+        titleId: data.titleId,
+        phoneInternal: data.phoneInternal,
+        phoneMobile: data.phoneMobile,
+        email: data.email,
+        avatar: data.avatar,
+        departmentId: data.departmentId,
+      },
       include: { department: true, title: true },
+    });
+
+    await this.createUserForContact(contact);
+
+    return contact;
+  }
+
+  private async createUserForContact(contact: any) {
+    if (!contact.sicilNo) return;
+
+    const existing = await this.prisma.user.findUnique({
+      where: { username: contact.sicilNo },
+    });
+    if (existing) return;
+
+    const hashedPassword = await bcrypt.hash('Adalet', 10);
+    await this.prisma.user.create({
+      data: {
+        username: contact.sicilNo,
+        password: hashedPassword,
+        role: 'USER',
+        firstTimeLogin: true,
+        contactId: contact.id,
+      },
     });
   }
 
@@ -145,6 +181,7 @@ export class ContactsService {
     data: {
       firstName?: string;
       lastName?: string;
+      sicilNo?: string;
       titleId?: number;
       phoneInternal?: string;
       phoneMobile?: string;
@@ -153,12 +190,28 @@ export class ContactsService {
       departmentId?: number;
     },
   ) {
-    await this.findOne(id);
-    return this.prisma.contact.update({
+    const contact = await this.findOne(id);
+    const updated = await this.prisma.contact.update({
       where: { id },
-      data,
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        sicilNo: data.sicilNo,
+        titleId: data.titleId,
+        phoneInternal: data.phoneInternal,
+        phoneMobile: data.phoneMobile,
+        email: data.email,
+        avatar: data.avatar,
+        departmentId: data.departmentId,
+      },
       include: { department: true, title: true },
     });
+
+    if (data.sicilNo && data.sicilNo !== contact.sicilNo) {
+      await this.createUserForContact(updated);
+    }
+
+    return updated;
   }
 
   async remove(id: number) {
@@ -211,7 +264,7 @@ export class ContactsService {
           titleId = title.id;
         }
 
-        await this.prisma.contact.create({
+        const contact = await this.prisma.contact.create({
           data: {
             firstName: String(firstName),
             lastName: String(lastName),
@@ -223,6 +276,8 @@ export class ContactsService {
             titleId,
           },
         });
+
+        await this.createUserForContact(contact);
 
         imported++;
       } catch (e: any) {

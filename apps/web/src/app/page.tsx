@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/lib/theme';
+import { useRouter } from 'next/navigation';
 import { Contact, Department } from '@/types';
 import {
   Search, Grid3X3, List, Building2, Phone, Mail, User,
@@ -27,6 +28,21 @@ function getAvatarColor(name: string) {
 
 export default function HomePage() {
   const { isAuthenticated, user, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    if (authLoading) return;
+    api.getModuleStatus('rehber-auth').then((r) => {
+      const status = r.data ?? r;
+      if (status?.enabled && !isAuthenticated) {
+        router.push('/giris');
+      } else {
+        setAuthChecked(true);
+      }
+    }).catch(() => setAuthChecked(true));
+  }, [authLoading, isAuthenticated, router]);
+
   const [query, setQuery] = useState('');
   const [departmentId, setDepartmentId] = useState<number>(0);
   const [titleId, setTitleId] = useState<number>(0);
@@ -254,6 +270,8 @@ export default function HomePage() {
     );
   });
 
+  if (!authChecked) return null;
+
   return (
     <div className="min-h-screen bg-surface">
       {/* Modal */}
@@ -370,7 +388,19 @@ export default function HomePage() {
                 <span className="hidden sm:inline">Yemek Listesi</span>
               </a>
             )}
-            {isAuthenticated ? (
+            {isAuthenticated && user?.role === 'USER' ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-400">
+                  {[user.firstName, user.lastName].filter(Boolean).join(' ')} ({user.sicilNo})
+                </span>
+                <button
+                  onClick={() => { localStorage.removeItem('token'); window.location.href = '/giris'; }}
+                  className="text-sm text-gray-500 hover:text-red-400 transition-colors"
+                >
+                  Çıkış Yap
+                </button>
+              </div>
+            ) : isAuthenticated ? (
               <a
                 href="/admin"
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium
@@ -380,18 +410,7 @@ export default function HomePage() {
                 <LayoutDashboard className="w-4 h-4" />
                 Admin Panel
               </a>
-            ) : (
-              <a
-                href="/admin/login"
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-gray-300
-                           border border-white/[0.08] hover:border-brand-500/30 hover:text-brand-400
-                           hover:bg-brand-500/5 transition-all duration-200"
-              >
-                <User className="w-4 h-4" />
-                Admin Giriş
-                <ArrowRight className="w-3 h-3" />
-              </a>
-            )}
+            ) : null}
           </div>
 
           {/* Hero Content */}

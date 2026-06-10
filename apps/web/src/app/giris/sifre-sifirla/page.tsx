@@ -1,35 +1,60 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/lib/auth';
+import { api } from '@/lib/api';
 import { useRouter } from 'next/navigation';
-import { Phone, LogIn, Eye, EyeOff } from 'lucide-react';
+import { Phone, KeyRound, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
-export default function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+export default function SifreSifirlaPage() {
+  const [token, setToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (newPassword.length < 3) {
+      setError('Şifre en az 3 karakter olmalıdır');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Şifreler eşleşmiyor');
+      return;
+    }
+
     setLoading(true);
     try {
-      const { user } = await login(username, password);
-      if (user.role === 'VESAYET_ADMIN') {
-        router.push('/vesayet');
-      } else {
-        router.push('/admin');
-      }
+      await api.resetPassword(token, newPassword);
+      setSuccess(true);
+      setTimeout(() => router.push('/giris'), 2000);
     } catch (err: any) {
-      setError(err.message || 'Giriş yapılırken bir hata oluştu');
+      setError(err.message || 'Şifre sıfırlanırken bir hata oluştu');
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="relative w-full max-w-sm text-center">
+          <div className="glass rounded-2xl p-8">
+            <div className="w-16 h-16 rounded-2xl bg-green-500/20 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-8 h-8 text-green-400" />
+            </div>
+            <h2 className="text-lg font-semibold text-white mb-2">Şifre Sıfırlandı</h2>
+            <p className="text-sm text-gray-400">Yeni şifrenizle giriş yapabilirsiniz. Yönlendiriliyorsunuz...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center p-4 relative overflow-hidden">
@@ -43,18 +68,18 @@ export default function LoginPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">Burdur Adliyesi</h1>
-            <p className="text-sm text-gray-500">Admin Paneli</p>
+            <p className="text-sm text-gray-500">Telefon Rehberi</p>
           </div>
         </div>
 
         <div className="glass rounded-2xl p-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500/20 to-brand-600/10 flex items-center justify-center">
-              <LogIn className="w-5 h-5 text-brand-400" />
+              <KeyRound className="w-5 h-5 text-brand-400" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Giriş Yap</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Admin kimlik bilgilerinizi girin</p>
+              <h2 className="text-lg font-semibold text-white">Şifre Sıfırla</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Kod ve yeni şifrenizi girin</p>
             </div>
           </div>
 
@@ -67,28 +92,29 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Kullanıcı Adı</label>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Sıfırlama Kodu</label>
               <input
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="input-field"
-                placeholder="Kullanıcı adınızı girin"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                className="input-field font-mono"
+                placeholder="Kodu yapıştırın veya yazın"
                 required
                 autoFocus
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Şifre</label>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Yeni Şifre</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
                   className="input-field pr-12"
-                  placeholder="Şifrenizi girin"
+                  placeholder="En az 3 karakter"
                   required
+                  minLength={3}
                 />
                 <button
                   type="button"
@@ -100,6 +126,19 @@ export default function LoginPage() {
               </div>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Yeni Şifre (Tekrar)</label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="input-field"
+                placeholder="Şifrenizi tekrar girin"
+                required
+                minLength={3}
+              />
+            </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -108,20 +147,20 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Giriş yapılıyor...
+                  Sıfırlanıyor...
                 </>
               ) : (
                 <>
-                  <LogIn className="w-4 h-4" />
-                  Giriş Yap
+                  <KeyRound className="w-4 h-4" />
+                  Şifreyi Sıfırla
                 </>
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <a href="/" className="text-sm text-gray-500 hover:text-brand-400 transition-colors">
-              ← Ana Sayfaya Dön
+            <a href="/giris/sifre-unuttum" className="text-sm text-gray-500 hover:text-brand-400 transition-colors">
+              ← Kodu tekrar al
             </a>
           </div>
         </div>

@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { Phone, LogIn, Eye, EyeOff } from 'lucide-react';
+import { Phone, LogIn, Eye, EyeOff, KeyRound } from 'lucide-react';
 
-export default function LoginPage() {
+export default function GirisPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -19,11 +19,13 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const { user } = await login(username, password);
-      if (user.role === 'VESAYET_ADMIN') {
-        router.push('/vesayet');
-      } else {
+      const { user, firstTimeLogin } = await login(username, password);
+      if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
         router.push('/admin');
+      } else if (firstTimeLogin) {
+        router.push('/giris/sifre-belirle');
+      } else {
+        router.push('/');
       }
     } catch (err: any) {
       setError(err.message || 'Giriş yapılırken bir hata oluştu');
@@ -43,7 +45,7 @@ export default function LoginPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">Burdur Adliyesi</h1>
-            <p className="text-sm text-gray-500">Admin Paneli</p>
+            <p className="text-sm text-gray-500">Telefon Rehberi</p>
           </div>
         </div>
 
@@ -53,8 +55,8 @@ export default function LoginPage() {
               <LogIn className="w-5 h-5 text-brand-400" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Giriş Yap</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Admin kimlik bilgilerinizi girin</p>
+              <h2 className="text-lg font-semibold text-white">Personel Girişi</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Sicil numaranız ve şifrenizle giriş yapın</p>
             </div>
           </div>
 
@@ -67,13 +69,13 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Kullanıcı Adı</label>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Sicil No</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="input-field"
-                placeholder="Kullanıcı adınızı girin"
+                placeholder="Sicil numaranızı girin"
                 required
                 autoFocus
               />
@@ -119,10 +121,16 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <a href="/" className="text-sm text-gray-500 hover:text-brand-400 transition-colors">
-              ← Ana Sayfaya Dön
+          <div className="mt-6 space-y-3 text-center">
+            <a href="/giris/sifre-unuttum" className="flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-brand-400 transition-colors">
+              <KeyRound className="w-3.5 h-3.5" />
+              Şifremi Unuttum
             </a>
+            <div>
+              <a href="/" className="text-sm text-gray-500 hover:text-brand-400 transition-colors">
+                ← Ana Sayfaya Dön
+              </a>
+            </div>
           </div>
         </div>
       </div>

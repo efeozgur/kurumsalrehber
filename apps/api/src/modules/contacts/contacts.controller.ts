@@ -11,6 +11,7 @@ import {
   Res,
   UploadedFile,
   UseInterceptors,
+  UseGuards,
   BadRequestException,
 } from '@nestjs/common';
 import { Response } from 'express';
@@ -21,6 +22,7 @@ import { ContactsService } from './contacts.service';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { RehberAuthGuard } from '../../common/guards/rehber-auth.guard';
 import { AnalyticsService } from '../analytics/analytics.service';
 
 @ApiTags('Contacts')
@@ -32,6 +34,7 @@ export class ContactsController {
   ) {}
 
   @Public()
+  @UseGuards(RehberAuthGuard)
   @Get('api/contacts/search')
   @ApiQuery({ name: 'q', required: false })
   @ApiQuery({ name: 'departmentId', required: false })
@@ -60,6 +63,7 @@ export class ContactsController {
   }
 
   @Public()
+  @UseGuards(RehberAuthGuard)
   @Get('api/contacts/fav/list')
   listFavorites(
     @Query('page') page?: string,
@@ -72,6 +76,7 @@ export class ContactsController {
   }
 
   @Public()
+  @UseGuards(RehberAuthGuard)
   @Get('api/contacts/:id')
   async findOne(@Param('id') id: string) {
     const contact = await this.contactsService.findOne(+id);
@@ -80,6 +85,7 @@ export class ContactsController {
   }
 
   @Public()
+  @UseGuards(RehberAuthGuard)
   @Patch('api/contacts/:id/favorite')
   toggleFavorite(@Param('id') id: string) {
     return this.contactsService.toggleFavorite(+id);

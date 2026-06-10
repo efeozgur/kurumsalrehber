@@ -34,6 +34,12 @@ export interface User {
   username: string;
   role: string;
   createdAt: string;
+  firstTimeLogin?: boolean;
+  contact?: {
+    firstName: string | null;
+    lastName: string | null;
+    sicilNo: string | null;
+  } | null;
 }
 
 export interface ApiResponse<T> {

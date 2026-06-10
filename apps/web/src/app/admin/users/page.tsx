@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { User } from '@/types';
-import { Plus, Trash2, UserCog, Shield } from 'lucide-react';
+import { Plus, Trash2, UserCog, Shield, RefreshCw } from 'lucide-react';
 
 export default function UsersPage() {
   const { user: currentUser } = useAuth();
@@ -16,6 +16,21 @@ export default function UsersPage() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('ADMIN');
   const [error, setError] = useState('');
+  const [syncing, setSyncing] = useState(false);
+
+  const syncUsers = async () => {
+    setSyncing(true);
+    try {
+      const res: any = await api.syncUsers();
+      const data = res.data ?? res;
+      alert(data.message || JSON.stringify(data));
+      load();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const load = () => {
     api.getUsers()
@@ -55,11 +70,17 @@ export default function UsersPage() {
           <h1 className="text-2xl font-bold text-white">Kullanıcılar</h1>
           <p className="text-sm text-gray-500 mt-1">Sistem yöneticileri</p>
         </div>
-        {isSuper && (
-          <button onClick={() => setShowForm(!showForm)} className="btn-primary flex items-center gap-2 text-sm">
-            <Plus className="w-4 h-4" /> Yeni Kullanıcı
+        <div className="flex items-center gap-2">
+          <button onClick={syncUsers} disabled={syncing} className="btn-ghost flex items-center gap-2 text-sm">
+            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            Hesapları Oluştur
           </button>
-        )}
+          {isSuper && (
+            <button onClick={() => setShowForm(!showForm)} className="btn-primary flex items-center gap-2 text-sm">
+              <Plus className="w-4 h-4" /> Yeni Kullanıcı
+            </button>
+          )}
+        </div>
       </div>
 
       {showForm && (
@@ -105,7 +126,8 @@ export default function UsersPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/[0.06]">
-                <th className="text-left px-5 py-3.5 font-medium text-gray-500 text-xs uppercase tracking-wider">Kullanıcı Adı</th>
+                <th className="text-left px-5 py-3.5 font-medium text-gray-500 text-xs uppercase tracking-wider">Kullanıcı</th>
+                <th className="text-left px-5 py-3.5 font-medium text-gray-500 text-xs uppercase tracking-wider">Ad Soyad</th>
                 <th className="text-left px-5 py-3.5 font-medium text-gray-500 text-xs uppercase tracking-wider">Rol</th>
                 <th className="text-left px-5 py-3.5 font-medium text-gray-500 text-xs uppercase tracking-wider hidden md:table-cell">Oluşturulma</th>
                 <th className="text-right px-5 py-3.5 font-medium text-gray-500 text-xs uppercase tracking-wider">İşlem</th>
@@ -123,20 +145,27 @@ export default function UsersPage() {
                     </div>
                   </td>
                   <td className="px-5 py-3.5">
+                    <span className="text-gray-400 text-sm">
+                      {user.contact ? [user.contact.firstName, user.contact.lastName].filter(Boolean).join(' ') : '-'}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${
                       user.role === 'SUPER_ADMIN'
                         ? 'bg-purple-500/10 text-purple-400'
-                        : 'bg-brand-500/10 text-brand-400'
+                        : user.role === 'USER'
+                          ? 'bg-emerald-500/10 text-emerald-400'
+                          : 'bg-brand-500/10 text-brand-400'
                     }`}>
                       <Shield className="w-3 h-3" />
-                      {user.role === 'SUPER_ADMIN' ? 'Süper Admin' : 'Admin'}
+                      {user.role === 'SUPER_ADMIN' ? 'Süper Admin' : user.role === 'USER' ? 'Personel' : 'Admin'}
                     </span>
                   </td>
                   <td className="px-5 py-3.5 text-gray-500 hidden md:table-cell">
                     {new Date(user.createdAt).toLocaleDateString('tr-TR')}
                   </td>
                   <td className="px-5 py-3.5 text-right">
-                    {isSuper && (
+                    {isSuper && user.role !== 'USER' && (
                       <button onClick={() => handleDelete(user.id, user.username)} className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100">
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -145,7 +174,7 @@ export default function UsersPage() {
                 </tr>
               ))}
               {users.length === 0 && (
-                <tr><td colSpan={4} className="text-center py-12 text-gray-500">Henüz kullanıcı yok</td></tr>
+                <tr><td colSpan={5} className="text-center py-12 text-gray-500">Henüz kullanıcı yok</td></tr>
               )}
             </tbody>
           </table>

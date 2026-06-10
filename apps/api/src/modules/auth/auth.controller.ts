@@ -37,6 +37,36 @@ export class AuthController {
     return this.authService.login(dto.username, dto.password);
   }
 
+  @Public()
+  @Post('change-password')
+  changePassword(
+    @Request() req,
+    @Body('currentPassword') currentPassword: string,
+    @Body('newPassword') newPassword: string,
+    @Body('userId') userId?: number,
+  ) {
+    const uid = userId || req.user?.id;
+    if (!uid) {
+      throw new Error('Kullanıcı ID gerekli');
+    }
+    return this.authService.changePassword(uid, currentPassword, newPassword);
+  }
+
+  @Public()
+  @Post('forgot-password')
+  forgotPassword(@Body('username') username: string) {
+    return this.authService.forgotPassword(username);
+  }
+
+  @Public()
+  @Post('reset-password')
+  resetPassword(
+    @Body('token') token: string,
+    @Body('newPassword') newPassword: string,
+  ) {
+    return this.authService.resetPassword(token, newPassword);
+  }
+
   @ApiBearerAuth()
   @Get('me')
   getProfile(@Request() req) {
@@ -60,5 +90,12 @@ export class AuthController {
   @Delete('users/:id')
   deleteUser(@Param('id') id: string) {
     return this.authService.deleteUser(+id);
+  }
+
+  @ApiBearerAuth()
+  @Roles('SUPER_ADMIN', 'ADMIN')
+  @Post('sync-users')
+  syncUsers() {
+    return this.authService.syncUsersFromContacts();
   }
 }

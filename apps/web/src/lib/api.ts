@@ -67,6 +67,27 @@ export const api = {
   deleteUser: (id: number) =>
     request(`/auth/users/${id}`, { method: 'DELETE' }),
 
+  changePassword: (currentPassword: string, newPassword: string, userId?: number) =>
+    request('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword, userId }),
+    }),
+
+  forgotPassword: (username: string) =>
+    request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ username }),
+    }),
+
+  resetPassword: (token: string, newPassword: string) =>
+    request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword }),
+    }),
+
+  syncUsers: () =>
+    request('/auth/sync-users', { method: 'POST' }),
+
   getStats: async () => {
     const res = await request<any>('/admin/stats');
     return res.data ?? res;
@@ -309,6 +330,46 @@ export const api = {
 
   clearAnalytics: () =>
     request('/admin/analytics/clear', { method: 'DELETE' }),
+
+  // ─── Import ──────────────────────────────────────────────
+
+  importDiscover: async (file: File) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_BASE}/admin/import/discover`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: 'Dosya okuma hatası' }));
+      throw new Error(err.message);
+    }
+    const json = await res.json();
+    return json.data ?? json;
+  },
+
+  importExecute: async (file: File, config: any) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('config', JSON.stringify(config));
+    const res = await fetch(`${API_BASE}/admin/import/execute`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: 'İçe aktarma hatası' }));
+      throw new Error(err.message);
+    }
+    const json = await res.json();
+    return json.data ?? json;
+  },
+
+  importClear: () =>
+    request('/admin/import/clear', { method: 'POST' }),
 
   // ─── Vesayet ──────────────────────────────────────────────
 
