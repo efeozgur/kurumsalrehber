@@ -74,6 +74,15 @@ Kurum içi kullanıma yönelik, yerel ağ üzerinde çalışan, genişletilebili
 - **Banka Yönetimi:** `/vesayet/bankalar` — `Bank` modeli (DB'de saklanır), `BankNameSelect` component'i (DB'den beslenir), liste + ekleme + satır içi düzenleme + silme onayı
 - **Bank Seed:** T. Vakıflar Bankası ve Ziraat Bankası seed ile otomatik oluşturulur; yeni bankalar admin tarafından eklenebilir
 - **Tasarım Değişikliği:** Wowdash → Frogetor (üçüncü tasarım yönü); CSS değişkenleri `--v-primary: #5766da`, `--v-success: #1ecab8`, `--v-danger: #f93b7a`, `--v-bg: #f2f5f7` olarak güncellendi; gradient kartlar (#5766da, #1ecab8, #00bcd4, #fbb624 accent renkleri)
+- **Altın Hesapları (GoldAccount):** Ayrı `GoldAccount` modeli (bankName/goldType/gram/quantity/wardId); backend CRUD endpoint'leri; rapor özetinde `totalGoldAccounts`, `totalGoldGram`, `goldByType`; detay sayfasında altın ekleme/düzenleme/silme; hesaplar sayfasında "Altın Hesapları" tab'ı; dashboard'da 4. altın istatistik kartı
+- **Dashboard Recharts Görselleştirmeleri:** PieChart (TL/USD/EUR doughnut), stacked horizontal BarChart (ilk 8 banka), PieChart (Vadeli/Vadesiz), ResponsiveContainer ile responsive
+- **Dashboard Ek Kartlar:** Kur Karşılığı (USD/EUR kur karşılığı TL değer), TL Bakiyesi (teal gradient, TL + hesap sayısı + ortalama + pay %), Vade Türüne Göre Dağılım (Vadesiz/Vadeli, kur karşılıklı), Banka Bazlı Bakiye (ilk 7 banka, kur karşılıklı genel toplam, progress bar)
+- **Kur API Değişikliği:** `exchangerate-api.com` → `open.er-api.com/v6/latest/TRY` (ücretsiz, anahtar gerekmez); timestamp alanı `rate.time_last_update_utc`
+- **Dashboard Sıralama:** Güncel Kurlar → Kur Karşılığı → TL Bakiyesi → Vade Türü → Banka Bazlı → Para Birimi Dağılımı (stacked bar) → Banka Bazlı BarChart → Hesap Türü PieChart → Raporlar
+- **Para Birimi Dağılımı Kartı:** Doughnut PieChart yerine yatay stacked bar (Total + yüzde etiketli segmentler + renkli lejant)
+- **Banka Bazlı Bakiye Kartı:** Her banka için `≈ X TL` (kur karşılığı), progress bar TL karşılığına göre, en üstte Genel Toplam (TL karşılığı) kartı
+- **Güncel Kurlar Kartı:** Sadece USD/EUR gösterilir (GBP/CHF kaldırıldı); yenileme butonu spinner gösterir; Kur Karşılığı kartının üstüne taşındı
+- **Tema Değiştirici Kaldırıldı:** Root layout'tan `ThemeSwitcher` kaldırıldı (vesayet kendi temasını kullanır)
 
 ## Teknoloji
 

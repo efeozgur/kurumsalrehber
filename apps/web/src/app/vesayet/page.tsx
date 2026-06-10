@@ -47,6 +47,7 @@ export default function VesayetDashboard() {
 
   const loadAll = async () => {
     setLoading(true);
+    setRatesLoading(true);
     try {
       const [wardsData, ratesData, reportData] = await Promise.all([
         api.getWards(),
@@ -91,6 +92,11 @@ export default function VesayetDashboard() {
   }, [wards]);
 
   const formatRate = (rate: number) => rate.toFixed(4);
+  const toTL = (cur: string, amt: number) => {
+    if (cur === 'USD') return amt * (rates?.USD || 1);
+    if (cur === 'EUR') return amt * (rates?.EUR || 1);
+    return amt;
+  };
 
   const totalWardsStat = report?.totalWards ?? totalWards;
   const activeWardsStat = report?.activeWards ?? wards.filter(w => !w.isRemoved).length;
@@ -229,6 +235,49 @@ export default function VesayetDashboard() {
               <div style={{ fontSize: '12px', color: '#98a6ad' }}>Altın hesabı bulunmuyor</div>
             )}
           </div>
+        </div>
+
+        {/* ─── Güncel Kurlar ─── */}
+        <div className="v-card" style={{ marginBottom: '24px' }}>
+          <div className="v-section-header">
+            <div className="v-section-icon" style={{ background: 'linear-gradient(120deg, rgb(123, 120, 201) 0px, rgb(96, 198, 243) 100%)' }}>
+              <DollarSign className="w-5 h-6 text-white" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <h3 className="v-section-title">Güncel Kurlar</h3>
+              <p className="v-section-desc">{rates?.updatedAt ? `Güncelleme: ${rates.updatedAt}` : 'Yükleniyor...'}</p>
+            </div>
+            <button onClick={loadAll} className="v-btn-ghost" style={{ padding: '7px 11px', fontSize: '12px' }}>
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          {ratesLoading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+              <div className="relative w-6 h-6">
+                <div className="absolute inset-0 rounded-full border-2 border-primary-500/20" />
+                <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary-500 animate-spin" style={{ borderTopColor: '#5766da' }} />
+              </div>
+            </div>
+          ) : rates ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              {[
+                { code: 'USD', name: 'Dolar', icon: DollarSign, rate: rates.USD, color: '#5766da', bg: 'rgba(87,102,218,0.06)' },
+                { code: 'EUR', name: 'Euro', icon: Euro, rate: rates.EUR, color: '#1ecab8', bg: 'rgba(30,202,184,0.06)' },
+              ].map((cur) => (
+                <div key={cur.code} style={{ padding: '12px', borderRadius: '7px', background: cur.bg, display: 'flex', alignItems: 'center', gap: '10px', border: '1px solid #e9ecef' }}>
+                  <div style={{ width: '34px', height: '34px', borderRadius: '7px', background: cur.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <cur.icon className="w-3.5 h-4 text-white" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#676c79' }}>{cur.name} ({cur.code})</div>
+                    <div style={{ fontSize: '15px', fontWeight: 700, color: '#212529' }}>{formatRate(cur.rate)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '20px', color: '#98a6ad', fontSize: '13px' }}>Kur bilgisi alınamadı</div>
+          )}
         </div>
 
         {/* ─── Kur Karşılığı ─── */}
@@ -372,11 +421,6 @@ export default function VesayetDashboard() {
                   if (!byCur) return null;
                   const currencyEntries = Object.entries(byCur).filter(([, v]) => v > 0);
                   if (currencyEntries.length === 0) return null;
-                  const toTL = (cur: string, amt: number) => {
-                    if (cur === 'USD') return amt * (rates?.USD || 1);
-                    if (cur === 'EUR') return amt * (rates?.EUR || 1);
-                    return amt;
-                  };
                   const total = currencyEntries.reduce((s, [cur, v]) => s + toTL(cur, v), 0);
                   return (
                     <div key={term} style={{
@@ -430,21 +474,47 @@ export default function VesayetDashboard() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {(() => {
+                  const grandTotal = bankTotals.reduce((sum, [, byCur]) => {
+                    return sum + Object.entries(byCur).reduce((s, [cur, v]) => s + toTL(cur, v), 0);
+                  }, 0);
+                  return (
+                    <div style={{
+                      padding: '14px 20px', borderRadius: '7px',
+                      background: 'linear-gradient(120deg, rgba(87,102,218,0.08) 0px, rgba(30,202,184,0.08) 100%)',
+                      border: '1px solid rgba(87,102,218,0.15)',
+                      marginBottom: '4px',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 500, color: '#676c79' }}>Genel Toplam (TL Karşılığı)</span>
+                        <span style={{ fontSize: '18px', fontWeight: 700, color: '#212529' }}>
+                          {grandTotal.toLocaleString('tr-TR')} TL
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
                 {bankTotals.slice(0, 7).map(([bank, byCur]) => {
                   const currencyEntries = Object.entries(byCur).filter(([, v]) => v > 0);
-                  const total = currencyEntries.reduce((s, [, v]) => s + v, 0);
-                  const maxVal = bankTotals.slice(0, 7).reduce((s, [, bc]) => s + Math.max(...Object.values(bc).filter(v => v > 0), 0), 0);
-                  const pct = maxVal > 0 ? (total / maxVal) * 100 : 0;
+                  const totalTL = currencyEntries.reduce((s, [cur, v]) => s + toTL(cur, v), 0);
+                  const maxVal = bankTotals.slice(0, 7).reduce((s, [, bc]) => {
+                    const entries = Object.entries(bc).filter(([, v]) => v > 0);
+                    return s + entries.reduce((ss, [cur, v]) => ss + toTL(cur, v), 0);
+                  }, 0);
+                  const pct = maxVal > 0 ? (totalTL / maxVal) * 100 : 0;
                   return (
                     <div key={bank} style={{ padding: '12px 0', borderBottom: '1px solid #f2f5f7' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                         <span style={{ fontSize: '13px', fontWeight: 500, color: '#212529' }}>{bank}</span>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                           {currencyEntries.map(([cur, amt]) => (
                             <span key={cur} style={{ fontSize: '12px', fontWeight: 600, color: CURRENCY_COLORS[cur] }}>
                               {amt.toLocaleString('tr-TR')} {cur}
                             </span>
                           ))}
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#212529', marginLeft: '2px' }}>
+                            ≈ {totalTL.toLocaleString('tr-TR')} TL
+                          </span>
                         </div>
                       </div>
                       <div style={{ height: '4px', borderRadius: '3px', background: '#e9ecef', overflow: 'hidden' }}>
@@ -464,52 +534,7 @@ export default function VesayetDashboard() {
 
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-          <div className="v-card">
-            <div className="v-section-header">
-              <div className="v-section-icon" style={{ background: 'linear-gradient(120deg, rgb(123, 120, 201) 0px, rgb(96, 198, 243) 100%)' }}>
-                <DollarSign className="w-5 h-6 text-white" />
-              </div>
-              <div style={{ flex: 1 }}>
-                <h3 className="v-section-title">Güncel Kurlar</h3>
-                <p className="v-section-desc">{rates?.updatedAt ? `Güncelleme: ${rates.updatedAt}` : 'Yükleniyor...'}</p>
-              </div>
-              <button onClick={loadAll} className="v-btn-ghost" style={{ padding: '7px 11px', fontSize: '12px' }}>
-                <RefreshCw className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            {ratesLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-                <div className="relative w-6 h-6">
-                  <div className="absolute inset-0 rounded-full border-2 border-primary-500/20" />
-                  <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary-500 animate-spin" style={{ borderTopColor: '#5766da' }} />
-                </div>
-              </div>
-            ) : rates ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                {[
-                  { code: 'USD', name: 'Dolar', icon: DollarSign, rate: rates.USD, color: '#5766da', bg: 'rgba(87,102,218,0.06)' },
-                  { code: 'EUR', name: 'Euro', icon: Euro, rate: rates.EUR, color: '#1ecab8', bg: 'rgba(30,202,184,0.06)' },
-                  { code: 'GBP', name: 'Sterlin', icon: Banknote, rate: rates.GBP, color: '#f93b7a', bg: 'rgba(249,59,122,0.06)' },
-                  { code: 'CHF', name: 'İsviçre Frangı', icon: Banknote, rate: rates.CHF, color: '#00bcd4', bg: 'rgba(0,188,212,0.06)' },
-                ].map((cur) => (
-                  <div key={cur.code} style={{ padding: '12px', borderRadius: '7px', background: cur.bg, display: 'flex', alignItems: 'center', gap: '10px', border: '1px solid #e9ecef' }}>
-                    <div style={{ width: '34px', height: '34px', borderRadius: '7px', background: cur.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <cur.icon className="w-3.5 h-4 text-white" />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '11px', color: '#676c79' }}>{cur.name} ({cur.code})</div>
-                      <div style={{ fontSize: '15px', fontWeight: 700, color: '#212529' }}>{formatRate(cur.rate)}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '20px', color: '#98a6ad', fontSize: '13px' }}>Kur bilgisi alınamadı</div>
-            )}
-          </div>
-
-          <div className="v-card">
+        <div className="v-card" style={{ marginBottom: '24px' }}>
             <div className="v-section-header">
               <div className="v-section-icon" style={{ background: 'linear-gradient(120deg, rgb(123, 120, 201) 0px, rgb(96, 198, 243) 100%)' }}>
                 <PieIcon className="w-5 h-6 text-white" />
@@ -524,32 +549,72 @@ export default function VesayetDashboard() {
                 Henüz hesap bakiyesi bulunmuyor
               </div>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                <ResponsiveContainer width="55%" height={220}>
-                  <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={85}
-                      dataKey="value" paddingAngle={3}>
-                      {pieData.map((entry, idx) => (
-                        <Cell key={idx} fill={entry.fill} stroke="none" />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(v: number) => v.toLocaleString('tr-TR')} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, minWidth: '120px' }}>
-                  {pieData.map(d => (
-                    <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ width: '10px', height: '10px', borderRadius: '3px', background: d.fill, flexShrink: 0 }} />
-                      <div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#212529' }}>{d.name}</div>
-                        <div style={{ fontSize: '11px', color: '#676c79' }}>{d.value.toLocaleString('tr-TR')}</div>
+              <div style={{ padding: '8px 4px' }}>
+                {(() => {
+                  const total = pieData.reduce((s, d) => s + d.value, 0);
+                  return (
+                    <>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '16px' }}>
+                        <div>
+                          <div style={{ fontSize: '24px', fontWeight: 700, color: '#212529', lineHeight: 1.2 }}>
+                            {total.toLocaleString('tr-TR')}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#676c79', marginTop: '2px' }}>Toplam Bakiye</div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                          {pieData.map(d => (
+                            <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: d.fill, flexShrink: 0 }} />
+                              <span style={{ fontSize: '12px', color: '#676c79' }}>{d.name}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                      <div style={{ display: 'flex', gap: '3px', height: '40px' }}>
+                        {pieData.map(d => {
+                          const pct = (d.value / total) * 100;
+                          return (
+                            <div key={d.name} style={{
+                              flex: d.value,
+                              background: d.fill,
+                              borderRadius: '5px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              minWidth: '20px',
+                              transition: 'flex 0.4s ease',
+                            }}>
+                              <span style={{
+                                fontSize: '12px', fontWeight: 700, color: '#fff',
+                                opacity: pct > 10 ? 1 : 0,
+                                textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                              }}>
+                                %{pct.toFixed(1)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '10px' }}>
+                        {pieData.map(d => {
+                          const pct = (d.value / total) * 100;
+                          return (
+                            <div key={d.name} style={{ textAlign: 'center' }}>
+                              <div style={{ fontSize: '14px', fontWeight: 700, color: d.fill }}>
+                                {d.value.toLocaleString('tr-TR')}
+                              </div>
+                              <div style={{ fontSize: '11px', color: '#98a6ad', marginTop: '1px' }}>
+                                %{pct.toFixed(1)} pay
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             )}
-          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
