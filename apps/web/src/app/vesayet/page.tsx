@@ -127,6 +127,16 @@ export default function VesayetDashboard() {
 
   const CURRENCY_COLORS: Record<string, string> = { TL: '#1ecab8', USD: '#5766da', EUR: '#f93b7a' };
 
+  const termData = useMemo(() => {
+    const map: Record<string, Record<string, number>> = {};
+    wards.forEach(w => w.bankAccounts.forEach(a => {
+      const term = a.termType === 'vadeli' ? 'Vadeli' : 'Vadesiz';
+      if (!map[term]) map[term] = {};
+      map[term][a.currency] = (map[term][a.currency] || 0) + a.amount;
+    }));
+    return map;
+  }, [wards]);
+
   return (
     <div className="vesayet-body" style={{ backgroundColor: 'var(--v-bg)', padding: '28px 0 64px' }}>
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
@@ -337,6 +347,117 @@ export default function VesayetDashboard() {
             </div>
           </div>
         )}
+
+        {/* ─── Vadeli / Vadesiz + Banka Bazlı ─── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+
+          <div className="v-card">
+            <div className="v-section-header">
+              <div className="v-section-icon" style={{ background: 'linear-gradient(120deg, rgb(246, 211, 101) 0px, rgb(255, 120, 80) 100%)' }}>
+                <BarChart3 className="w-5 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="v-section-title">Vade Türüne Göre Dağılım</h3>
+                <p className="v-section-desc">Vadeli ve vadesiz hesaplardaki bakiyeler</p>
+              </div>
+            </div>
+            {Object.keys(termData).length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '32px 20px', color: '#98a6ad', fontSize: '13px' }}>
+                Henüz hesap bulunmuyor
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {(['Vadesiz', 'Vadeli'] as const).map(term => {
+                  const byCur = termData[term];
+                  if (!byCur) return null;
+                  const currencyEntries = Object.entries(byCur).filter(([, v]) => v > 0);
+                  if (currencyEntries.length === 0) return null;
+                  const total = currencyEntries.reduce((s, [, v]) => s + v, 0);
+                  return (
+                    <div key={term} style={{
+                      padding: '18px 20px', borderRadius: '7px',
+                      background: term === 'Vadesiz' ? 'rgba(0,188,212,0.06)' : 'rgba(87,102,218,0.06)',
+                      border: `1px solid ${term === 'Vadesiz' ? 'rgba(0,188,212,0.15)' : 'rgba(87,102,218,0.15)'}`,
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{
+                            width: '8px', height: '8px', borderRadius: '50%',
+                            background: term === 'Vadesiz' ? '#00bcd4' : '#5766da',
+                          }} />
+                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#212529' }}>{term}</span>
+                        </div>
+                        <span style={{ fontSize: '16px', fontWeight: 700, color: '#212529' }}>
+                          {total.toLocaleString('tr-TR')} TL
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        {currencyEntries.map(([cur, amt]) => (
+                          <div key={cur} style={{
+                            padding: '4px 10px', borderRadius: '4px', fontSize: '11px',
+                            background: `${CURRENCY_COLORS[cur]}15`,
+                            color: CURRENCY_COLORS[cur], fontWeight: 600,
+                          }}>
+                            {amt.toLocaleString('tr-TR')} {cur}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="v-card">
+            <div className="v-section-header">
+              <div className="v-section-icon" style={{ background: 'linear-gradient(120deg, rgb(0, 231, 149) 0px, rgb(0, 149, 226) 100%)' }}>
+                <Building2 className="w-5 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="v-section-title">Banka Bazlı Bakiye</h3>
+                <p className="v-section-desc">Hangi bankada ne kadar para var</p>
+              </div>
+            </div>
+            {bankTotals.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '32px 20px', color: '#98a6ad', fontSize: '13px' }}>
+                Henüz banka hesabı bulunmuyor
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {bankTotals.slice(0, 7).map(([bank, byCur]) => {
+                  const currencyEntries = Object.entries(byCur).filter(([, v]) => v > 0);
+                  const total = currencyEntries.reduce((s, [, v]) => s + v, 0);
+                  const maxVal = bankTotals.slice(0, 7).reduce((s, [, bc]) => s + Math.max(...Object.values(bc).filter(v => v > 0), 0), 0);
+                  const pct = maxVal > 0 ? (total / maxVal) * 100 : 0;
+                  return (
+                    <div key={bank} style={{ padding: '12px 0', borderBottom: '1px solid #f2f5f7' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 500, color: '#212529' }}>{bank}</span>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          {currencyEntries.map(([cur, amt]) => (
+                            <span key={cur} style={{ fontSize: '12px', fontWeight: 600, color: CURRENCY_COLORS[cur] }}>
+                              {amt.toLocaleString('tr-TR')} {cur}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{ height: '4px', borderRadius: '3px', background: '#e9ecef', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', borderRadius: '3px', width: `${pct}%`, background: '#5766da', transition: 'width 0.4s ease' }} />
+                      </div>
+                    </div>
+                  );
+                })}
+                {bankTotals.length > 7 && (
+                  <div style={{ textAlign: 'center', fontSize: '12px', color: '#5766da', padding: '8px 0' }}>
+                    +{bankTotals.length - 7} banka daha...
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
           <div className="v-card">
