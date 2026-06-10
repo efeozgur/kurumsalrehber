@@ -274,21 +274,20 @@ export default function VesayetDashboard() {
                 );
               })}
               {(() => {
-                const totalTL = (balanceByCurrency['TL'] || 0) +
-                  (balanceByCurrency['USD'] || 0) * rates.USD +
-                  (balanceByCurrency['EUR'] || 0) * rates.EUR;
+                const dovizTL = ((balanceByCurrency['USD'] || 0) * rates.USD) +
+                  ((balanceByCurrency['EUR'] || 0) * rates.EUR);
                 return (
                   <div style={{
                     padding: '20px', borderRadius: '7px',
                     background: 'linear-gradient(120deg, rgb(0, 231, 149) 0px, rgb(0, 149, 226) 100%)',
                     color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'center',
                   }}>
-                    <div style={{ fontSize: '12px', opacity: 0.85 }}>Toplam TL Değer</div>
+                    <div style={{ fontSize: '12px', opacity: 0.85 }}>Döviz Toplam TL Değer</div>
                     <div style={{ fontSize: '24px', fontWeight: 700, marginTop: '4px' }}>
-                      {totalTL.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} TL
+                      {dovizTL.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} TL
                     </div>
                     <div style={{ fontSize: '11px', opacity: 0.7, marginTop: '4px' }}>
-                      TL + {(['USD', 'EUR'] as const).filter(c => (balanceByCurrency[c] || 0) > 0).map(c => `${balanceByCurrency[c]?.toLocaleString('tr-TR')} ${c} × ${(c === 'USD' ? rates.USD : rates.EUR).toFixed(4)}`).join(' + ')}
+                      {(['USD', 'EUR'] as const).filter(c => (balanceByCurrency[c] || 0) > 0).map(c => `${balanceByCurrency[c]?.toLocaleString('tr-TR')} ${c} × ${(c === 'USD' ? rates.USD : rates.EUR).toFixed(4)}`).join(' + ')}
                     </div>
                   </div>
                 );
