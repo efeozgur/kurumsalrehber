@@ -372,7 +372,12 @@ export default function VesayetDashboard() {
                   if (!byCur) return null;
                   const currencyEntries = Object.entries(byCur).filter(([, v]) => v > 0);
                   if (currencyEntries.length === 0) return null;
-                  const total = currencyEntries.reduce((s, [, v]) => s + v, 0);
+                  const toTL = (cur: string, amt: number) => {
+                    if (cur === 'USD') return amt * (rates?.USD || 1);
+                    if (cur === 'EUR') return amt * (rates?.EUR || 1);
+                    return amt;
+                  };
+                  const total = currencyEntries.reduce((s, [cur, v]) => s + toTL(cur, v), 0);
                   return (
                     <div key={term} style={{
                       padding: '18px 20px', borderRadius: '7px',
