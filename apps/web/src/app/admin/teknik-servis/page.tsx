@@ -4,15 +4,23 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
-  Wrench, Settings, Users, BookOpen, Plus, Trash2, Save, Shield,
+  Wrench, Settings, Users, BookOpen, Plus, Trash2, Save, Shield, AlertTriangle,
 } from 'lucide-react';
 import UserPicker from '@/components/UserPicker';
 
 export default function AdminTeknikServisPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const [moduleEnabled, setModuleEnabled] = useState<boolean | null>(null);
   const [settings, setSettings] = useState<any>({ closedBy: 'user' });
+
+  useEffect(() => {
+    api.getModuleStatus('teknik-servis').then((r) => {
+      setModuleEnabled(r.enabled !== false);
+    }).catch(() => setModuleEnabled(true));
+  }, []);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [allPersonnel, setAllPersonnel] = useState<any[]>([]);
   const [solutions, setSolutions] = useState<any[]>([]);
@@ -28,6 +36,13 @@ export default function AdminTeknikServisPage() {
   // Solutions
   const [newSolution, setNewSolution] = useState({ title: '', description: '', keywords: '' });
   const [solutionLoading, setSolutionLoading] = useState(false);
+
+  useEffect(() => {
+    if (moduleEnabled === false) {
+      router.push('/admin');
+      return;
+    }
+  }, [moduleEnabled, router]);
 
   useEffect(() => {
     if (!user || (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN')) {
@@ -98,6 +113,22 @@ export default function AdminTeknikServisPage() {
       setSolutions(r ?? []);
     } catch {}
   };
+
+  if (moduleEnabled === null) {
+    return <div className="flex items-center justify-center py-16"><div className="w-6 h-6 rounded-full border-2 border-brand-500/20 border-t-brand-500 animate-spin" /></div>;
+  }
+
+  if (moduleEnabled === false) {
+    return (
+      <div className="max-w-sm mx-auto text-center py-16">
+        <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center mx-auto mb-3">
+          <AlertTriangle className="w-6 h-6 text-red-400" />
+        </div>
+        <h2 className="text-lg font-bold text-white mb-1">Modül Aktif Değil</h2>
+        <p className="text-sm text-gray-400">Teknik Servis modülü şu anda aktif değil.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto">

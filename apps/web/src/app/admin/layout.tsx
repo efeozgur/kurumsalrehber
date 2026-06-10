@@ -29,15 +29,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [setupCheck, setSetupCheck] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
   const [mealPlansEnabled, setMealPlansEnabled] = useState(true);
+  const [teknikServisEnabled, setTeknikServisEnabled] = useState(true);
 
   useEffect(() => {
     api.getModuleStatus('meal-plans').then((r) => {
       setMealPlansEnabled(r.enabled !== false);
     }).catch(() => {});
+    api.getModuleStatus('teknik-servis').then((r) => {
+      setTeknikServisEnabled(r.enabled !== false);
+    }).catch(() => {});
   }, []);
 
   const showVesayet = user?.role === 'SUPER_ADMIN' || user?.role === 'VESAYET_ADMIN';
-  const showTeknikServis = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
+  const showTeknikServis = (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN') && teknikServisEnabled;
   const menuItems = [
     ...baseMenuItems.filter((item) => {
       if (item.href === '/admin/meal-plans') return mealPlansEnabled;

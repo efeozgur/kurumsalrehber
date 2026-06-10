@@ -4,8 +4,9 @@ import { useAuth } from '@/lib/auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { api } from '@/lib/api';
 import {
-  Wrench, PlusCircle, List, Home, LogOut, Menu, X, Phone, ArrowLeft, Clock, TrendingUp, Book,
+  Wrench, PlusCircle, List, Home, LogOut, Menu, X, Phone, ArrowLeft, Clock, TrendingUp, Book, AlertTriangle,
 } from 'lucide-react';
 const getNavItems = (role?: string) => {
   if (role === 'TEKNIK_SERVIS') {
@@ -27,6 +28,7 @@ export default function TeknikServisLayout({ children }: { children: React.React
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [moduleEnabled, setModuleEnabled] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -34,7 +36,20 @@ export default function TeknikServisLayout({ children }: { children: React.React
     }
   }, [loading, isAuthenticated, router]);
 
-  if (loading) {
+  useEffect(() => {
+    api.getModuleStatus('teknik-servis').then((r) => {
+      setModuleEnabled(r.enabled !== false);
+    }).catch(() => setModuleEnabled(true));
+  }, []);
+
+  useEffect(() => {
+    if (moduleEnabled === false) {
+      const t = setTimeout(() => router.push('/'), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [moduleEnabled, router]);
+
+  if (loading || moduleEnabled === null) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
         <div className="relative w-10 h-10">
@@ -46,6 +61,28 @@ export default function TeknikServisLayout({ children }: { children: React.React
   }
 
   if (!isAuthenticated) return null;
+
+  if (moduleEnabled === false) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center px-4">
+        <div className="max-w-sm w-full text-center">
+          <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-400" />
+          </div>
+          <h1 className="text-xl font-bold text-white mb-2">Modül Aktif Değil</h1>
+          <p className="text-gray-400 text-sm mb-6">
+            Teknik Servis modülü şu anda aktif değil. Bu sayfaya erişim sağlanamıyor.
+          </p>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-all"
+          >
+            Ana Sayfaya Dön
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const navItems = getNavItems(user?.role);
   const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
