@@ -56,12 +56,25 @@ export const api = {
 
   getMe: () => request<any>('/auth/me'),
 
-  getUsers: () => request<any>('/auth/users'),
+  getUsers: (q?: string, page?: number, limit?: number) => {
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    if (page) params.set('page', String(page));
+    if (limit) params.set('limit', String(limit));
+    const qs = params.toString();
+    return request<any>(`/auth/users${qs ? '?' + qs : ''}`);
+  },
 
   createUser: (username: string, password: string, role?: string) =>
     request('/auth/users', {
       method: 'POST',
       body: JSON.stringify({ username, password, role }),
+    }),
+
+  updateUserRole: (id: number, role: string) =>
+    request(`/auth/users/${id}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
     }),
 
   deleteUser: (id: number) =>

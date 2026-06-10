@@ -2,13 +2,15 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
   Param,
+  Query,
   Delete,
   Request,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto, SetupDto, CreateUserDto } from './dto/login.dto';
 import { Public } from '../../common/decorators/public.decorator';
@@ -75,14 +77,28 @@ export class AuthController {
 
   @ApiBearerAuth()
   @Get('users')
-  getUsers() {
-    return this.authService.getUsers();
+  @ApiQuery({ name: 'q', required: false })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  getUsers(
+    @Query('q') q?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.authService.getUsers(q, Number(page) || 1, Number(limit) || 20);
   }
 
   @ApiBearerAuth()
   @Post('users')
   createUser(@Body() dto: CreateUserDto) {
     return this.authService.createUser(dto.username, dto.password, dto.role);
+  }
+
+  @ApiBearerAuth()
+  @Roles('SUPER_ADMIN')
+  @Patch('users/:id/role')
+  updateUserRole(@Param('id') id: string, @Body('role') role: string) {
+    return this.authService.updateRole(+id, role);
   }
 
   @ApiBearerAuth()

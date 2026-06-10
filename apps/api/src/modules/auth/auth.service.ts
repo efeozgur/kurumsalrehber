@@ -201,17 +201,39 @@ export class AuthService {
     return { message: `${created} kullanıcı hesabı oluşturuldu` };
   }
 
-  async getUsers() {
-    return this.prisma.user.findMany({
-      select: {
-        id: true,
-        username: true,
-        role: true,
-        firstTimeLogin: true,
-        createdAt: true,
-        contact: { select: { firstName: true, lastName: true, sicilNo: true } },
-      },
-    });
+  async getUsers(q?: string, page = 1, limit = 20) {
+    const where: any = {};
+    if (q && q.length >= 2) {
+      where.OR = [
+        { username: { contains: q } },
+        { contact: { firstName: { contains: q } } },
+        { contact: { lastName: { contains: q } } },
+        { contact: { sicilNo: { contains: q } } },
+      ];
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          username: true,
+          role: true,
+          firstTimeLogin: true,
+          createdAt: true,
+          contact: { select: { firstName: true, lastName: true, sicilNo: true } },
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async createUser(username: string, password: string, role?: string) {
@@ -230,6 +252,22 @@ export class AuthService {
         role: role || 'ADMIN',
       },
       select: { id: true, username: true, role: true, createdAt: true },
+    });
+  }
+
+  async updateRole(id: number, role: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new BadRequestException('Kullanıcı bulunamadı');
+    }
+    const validRoles = ['SUPER_ADMIN', 'ADMIN', 'USER', 'VESAYET_ADMIN', 'TEKNIK_SERVIS'];
+    if (!validRoles.includes(role)) {
+      throw new BadRequestException(`Geçersiz rol: ${role}`);
+    }
+    return this.prisma.user.update({
+      where: { id },
+      data: { role },
+      select: { id: true, username: true, role: true },
     });
   }
 

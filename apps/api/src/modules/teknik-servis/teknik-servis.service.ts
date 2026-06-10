@@ -236,23 +236,40 @@ export class TeknikServisService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('Kullanıcı bulunamadı');
 
-    return this.prisma.serviceAssignment.upsert({
-      where: { userId },
-      update: {},
-      create: { userId },
+    if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') {
+      return { message: 'Admin kullanıcı zaten teknik personel yetkisine sahip' };
+    }
+
+    // Rolünü TEKNIK_SERVIS yap
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { role: 'TEKNIK_SERVIS' },
     });
+
+    // ServiceAssignment'i de temizle (varsa)
+    await this.prisma.serviceAssignment.deleteMany({ where: { userId } });
+
+    return { message: 'Kullanıcıya teknik servis yetkisi verildi' };
   }
 
   async removeAssignment(userId: number) {
-    const assignment = await this.prisma.serviceAssignment.findUnique({ where: { userId } });
-    if (!assignment) throw new NotFoundException('Atama bulunamadı');
-    await this.prisma.serviceAssignment.delete({ where: { userId } });
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Kullanıcı bulunamadı');
+
+    if (user.role === 'TEKNIK_SERVIS') {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { role: 'USER' },
+      });
+    }
+
+    await this.prisma.serviceAssignment.deleteMany({ where: { userId } });
     return { message: 'Teknik personel yetkisi kaldırıldı' };
   }
 
   async isTechUser(userId: number): Promise<boolean> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN') return true;
+    if (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' || user?.role === 'TEKNIK_SERVIS') return true;
     const assignment = await this.prisma.serviceAssignment.findUnique({ where: { userId } });
     return !!assignment;
   }
@@ -303,11 +320,12 @@ export class TeknikServisService {
   }
 
   async getTechPersonnel() {
-    const admins = await this.prisma.user.findMany({
+    const personnel = await this.prisma.user.findMany({
       where: {
         OR: [
           { role: 'SUPER_ADMIN' },
           { role: 'ADMIN' },
+          { role: 'TEKNIK_SERVIS' },
           { serviceAssignment: { isNot: null } },
         ],
       },
@@ -318,6 +336,6 @@ export class TeknikServisService {
         contact: { select: { firstName: true, lastName: true } },
       },
     });
-    return admins;
+    return personnel;
   }
 }
