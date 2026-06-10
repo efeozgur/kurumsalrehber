@@ -5,14 +5,16 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import {
-  Wrench, Settings, Users, BookOpen, Plus, Trash2, Save,
+  Wrench, Settings, Users, BookOpen, Plus, Trash2, Save, Shield,
 } from 'lucide-react';
+import UserPicker from '@/components/UserPicker';
 
 export default function AdminTeknikServisPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [settings, setSettings] = useState<any>({ closedBy: 'user' });
   const [assignments, setAssignments] = useState<any[]>([]);
+  const [allPersonnel, setAllPersonnel] = useState<any[]>([]);
   const [solutions, setSolutions] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'settings' | 'assignments' | 'solutions'>('settings');
 
@@ -21,7 +23,6 @@ export default function AdminTeknikServisPage() {
   const [saving, setSaving] = useState(false);
 
   // Assignments
-  const [newUserId, setNewUserId] = useState('');
   const [assignLoading, setAssignLoading] = useState(false);
 
   // Solutions
@@ -41,6 +42,7 @@ export default function AdminTeknikServisPage() {
 
     api.getTechAssignments().then((r) => setAssignments(r ?? [])).catch(() => {});
     api.getTechSolutions().then((r) => setSolutions(r ?? [])).catch(() => {});
+    api.getTechPersonnel().then((r) => setAllPersonnel(r ?? [])).catch(() => {});
   }, [user, router]);
 
   const handleSaveSettings = async () => {
@@ -54,14 +56,14 @@ export default function AdminTeknikServisPage() {
     }
   };
 
-  const handleAddAssignment = async () => {
-    if (!newUserId) return;
+  const handleAddAssignment = async (selectedUser: any) => {
+    if (!selectedUser?.id) return;
     setAssignLoading(true);
     try {
-      await api.assignTechUser(Number(newUserId));
-      setNewUserId('');
-      const r = await api.getTechAssignments();
-      setAssignments(r ?? []);
+      await api.assignTechUser(selectedUser.id);
+      const [r1, r2] = await Promise.all([api.getTechAssignments(), api.getTechPersonnel()]);
+      setAssignments(r1 ?? []);
+      setAllPersonnel(r2 ?? []);
     } finally {
       setAssignLoading(false);
     }
@@ -70,8 +72,9 @@ export default function AdminTeknikServisPage() {
   const handleRemoveAssignment = async (userId: number) => {
     try {
       await api.removeTechUser(userId);
-      const r = await api.getTechAssignments();
-      setAssignments(r ?? []);
+      const [r1, r2] = await Promise.all([api.getTechAssignments(), api.getTechPersonnel()]);
+      setAssignments(r1 ?? []);
+      setAllPersonnel(r2 ?? []);
     } catch {}
   };
 
@@ -164,50 +167,82 @@ export default function AdminTeknikServisPage() {
             <h2 className="text-sm font-medium text-white mb-1">Teknik Personel</h2>
             <p className="text-xs text-gray-500 mb-4">Arıza kayıtlarına atanabilecek kullanıcıları yönetin.</p>
 
-            <div className="flex gap-2 mb-4">
-              <input
-                type="number"
-                value={newUserId}
-                onChange={(e) => setNewUserId(e.target.value)}
-                placeholder="Kullanıcı ID"
-                className="flex-1 max-w-xs px-4 py-2.5 rounded-xl bg-surface border border-white/[0.06] text-white placeholder-gray-600 text-sm focus:outline-none focus:border-brand-500/40 transition-all"
+            <div className="mb-4">
+              <UserPicker
+                onSelect={handleAddAssignment}
+                excludeIds={assignments.map((a) => a.userId)}
+                placeholder="Kullanıcı adı, sicil no ile ara..."
               />
-              <button
-                onClick={handleAddAssignment}
-                disabled={assignLoading || !newUserId}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white text-sm font-medium transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                {assignLoading ? 'Ekleniyor...' : 'Ekle'}
-              </button>
             </div>
           </div>
 
-          {assignments.length === 0 ? (
-            <p className="text-sm text-gray-500">Henüz atanmış personel yok.</p>
-          ) : (
+          {/* Tüm teknik personel */}
+          <div>
+            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
+              Tüm Teknik Personel ({allPersonnel.length})
+            </h3>
             <div className="space-y-2">
-              {assignments.map((a: any) => (
-                <div key={a.userId} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-brand-500/20 flex items-center justify-center text-sm font-semibold text-brand-400">
-                      {a.user?.username?.charAt(0).toUpperCase() ?? '?'}
+              {allPersonnel.length === 0 ? (
+                <p className="text-sm text-gray-500">Henüz teknik personel yok.</p>
+              ) : (
+                allPersonnel.map((p: any) => {
+                  const isAssigned = assignments.some((a) => a.userId === p.id);
+                  return (
+                    <div key={p.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-brand-500/20 flex items-center justify-center text-sm font-semibold text-brand-400">
+                          {p.username?.charAt(0).toUpperCase() ?? '?'}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm text-white">{p.username}</p>
+                            {p.contact && (
+                              <span className="text-xs text-gray-500">
+                                {p.contact.firstName} {p.contact.lastName}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                              p.role === 'SUPER_ADMIN'
+                                ? 'bg-purple-500/10 text-purple-400'
+                                : p.role === 'ADMIN'
+                                  ? 'bg-brand-500/10 text-brand-400'
+                                  : 'bg-emerald-500/10 text-emerald-400'
+                            }`}>
+                              {p.role === 'SUPER_ADMIN' ? 'Süper Admin' : p.role === 'ADMIN' ? 'Admin' : 'Personel'}
+                            </span>
+                            {isAssigned && (
+                              <span className="text-[10px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded font-medium">
+                                Teknik Personel
+                              </span>
+                            )}
+                            {!isAssigned && p.role !== 'SUPER_ADMIN' && p.role !== 'ADMIN' && (
+                              <button
+                                onClick={() => handleAddAssignment(p)}
+                                disabled={assignLoading}
+                                className="text-[10px] text-brand-400 hover:text-brand-300 transition-colors"
+                              >
+                                + Teknik yap
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      {isAssigned && (
+                        <button
+                          onClick={() => handleRemoveAssignment(p.id)}
+                          className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
-                    <div>
-                      <p className="text-sm text-white">{a.user?.username ?? `#${a.userId}`}</p>
-                      <p className="text-xs text-gray-500">{a.user?.email ?? ''}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveAssignment(a.userId)}
-                    className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+                  );
+                })
+              )}
             </div>
-          )}
+          </div>
         </div>
       )}
 

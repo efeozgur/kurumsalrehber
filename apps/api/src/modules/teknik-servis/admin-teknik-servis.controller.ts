@@ -6,9 +6,10 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   BadRequestException,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { TeknikServisService } from './teknik-servis.service';
 import { Roles } from '../../common/decorators/roles.decorator';
 
@@ -71,5 +72,18 @@ export class AdminTeknikServisController {
   @Delete('solutions/:id')
   deleteSolution(@Param('id') id: string) {
     return this.service.deleteSolution(+id);
+  }
+
+  @Roles('SUPER_ADMIN', 'ADMIN')
+  @Get('users/search')
+  @ApiQuery({ name: 'q', required: true })
+  searchUsers(@Query('q') q: string) {
+    return this.service.searchUsers(q || '');
+  }
+
+  @Roles('SUPER_ADMIN', 'ADMIN')
+  @Get('personnel')
+  getTechPersonnel() {
+    return this.service.getTechPersonnel();
   }
 }

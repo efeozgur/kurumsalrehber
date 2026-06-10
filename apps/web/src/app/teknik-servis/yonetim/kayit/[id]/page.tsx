@@ -5,9 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import UserPicker from '@/components/UserPicker';
 import {
   ArrowLeft, Clock, CheckCircle, AlertTriangle, User, Calendar,
-  UserCheck, Send, XCircle,
+  UserCheck, Send, XCircle, UserPlus,
 } from 'lucide-react';
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -57,6 +58,16 @@ export default function YonetimKayitDetayPage() {
     setActionLoading(true);
     try {
       await api.adminUpdateStatus(Number(id), status);
+      fetchRequest();
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAssignToUser = async (targetUser: any) => {
+    setActionLoading(true);
+    try {
+      await api.assignToUser(Number(id), targetUser.id);
       fetchRequest();
     } finally {
       setActionLoading(false);
@@ -187,6 +198,21 @@ export default function YonetimKayitDetayPage() {
                 <UserCheck className="w-4 h-4" />
                 {actionLoading ? 'İşlem...' : 'Kendime Ata'}
               </button>
+            </div>
+          )}
+
+          {/* Assign to another */}
+          {isTech && (
+            <div className="rounded-2xl bg-surface-raised border border-white/[0.06] p-4">
+              <h3 className="text-sm font-medium text-white mb-3">
+                <UserPlus className="w-4 h-4 inline mr-1.5 text-gray-500" />
+                Başka Teknisyene Ata
+              </h3>
+              <UserPicker
+                onSelect={handleAssignToUser}
+                excludeIds={[req.assignedTo?.id, user?.id].filter(Boolean)}
+                placeholder="Kullanıcı ara..."
+              />
             </div>
           )}
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { User } from '@/types';
-import { Plus, Trash2, UserCog, Shield, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, UserCog, Shield, RefreshCw, Wrench } from 'lucide-react';
 
 export default function UsersPage() {
   const { user: currentUser } = useAuth();
@@ -17,6 +17,13 @@ export default function UsersPage() {
   const [role, setRole] = useState('ADMIN');
   const [error, setError] = useState('');
   const [syncing, setSyncing] = useState(false);
+  const [techUserIds, setTechUserIds] = useState<Set<number>>(new Set());
+
+  const loadTechAssignments = () => {
+    api.getTechAssignments().then((r) => {
+      setTechUserIds(new Set((r ?? []).map((a: any) => a.userId)));
+    }).catch(() => {});
+  };
 
   const syncUsers = async () => {
     setSyncing(true);
@@ -37,6 +44,7 @@ export default function UsersPage() {
       .then((res) => setUsers(res.data))
       .catch(() => {})
       .finally(() => setLoading(false));
+    loadTechAssignments();
   };
 
   useEffect(() => { load(); }, []);
@@ -150,16 +158,24 @@ export default function UsersPage() {
                     </span>
                   </td>
                   <td className="px-5 py-3.5">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${
-                      user.role === 'SUPER_ADMIN'
-                        ? 'bg-purple-500/10 text-purple-400'
-                        : user.role === 'USER'
-                          ? 'bg-emerald-500/10 text-emerald-400'
-                          : 'bg-brand-500/10 text-brand-400'
-                    }`}>
-                      <Shield className="w-3 h-3" />
-                      {user.role === 'SUPER_ADMIN' ? 'Süper Admin' : user.role === 'USER' ? 'Personel' : 'Admin'}
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${
+                        user.role === 'SUPER_ADMIN'
+                          ? 'bg-purple-500/10 text-purple-400'
+                          : user.role === 'USER'
+                            ? 'bg-emerald-500/10 text-emerald-400'
+                            : 'bg-brand-500/10 text-brand-400'
+                      }`}>
+                        <Shield className="w-3 h-3" />
+                        {user.role === 'SUPER_ADMIN' ? 'Süper Admin' : user.role === 'USER' ? 'Personel' : 'Admin'}
+                      </span>
+                      {techUserIds.has(user.id) && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium bg-amber-500/10 text-amber-400">
+                          <Wrench className="w-3 h-3" />
+                          Teknik
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-5 py-3.5 text-gray-500 hidden md:table-cell">
                     {new Date(user.createdAt).toLocaleDateString('tr-TR')}

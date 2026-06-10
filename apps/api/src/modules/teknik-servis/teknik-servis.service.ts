@@ -17,6 +17,7 @@ export class TeknikServisService {
         description: data.description,
         image: data.image,
         reportedById: userId,
+        status: 'BEKLIYOR',
       },
       include: {
         reportedBy: {
@@ -84,29 +85,42 @@ export class TeknikServisService {
     const isTech = await this.isTechUser(userId);
     const isOwner = request.reportedById === userId;
 
-    if (status === 'resolved') {
+    if (status === 'COZULDU') {
       throw new BadRequestException('Çözüm işlemi için resolve metodunu kullanın');
     }
 
     const setting = await this.getSetting();
 
-    if (status === 'closed' && setting?.closedBy === 'user' && isOwner) {
-      await this.prisma.serviceRequest.update({
-        where: { id },
-        data: { status: 'resolved', closedAt: new Date(), resolvedBy: userId },
-      });
-      this.events.emit('status_change', { id, status: 'resolved' });
-      return this.findOne(id);
+    // KAPATILDI: user veya tech kapatabilir (ayara bağlı)
+    if (status === 'KAPATILDI') {
+      if (setting?.closedBy === 'user' && isOwner) {
+        const updated = await this.prisma.serviceRequest.update({
+          where: { id },
+          data: { status: 'KAPATILDI', closedAt: new Date(), resolvedBy: userId },
+        });
+        this.events.emit('status_change', { id, status: 'KAPATILDI' });
+        return updated;
+      }
+      if (isTech) {
+        const updated = await this.prisma.serviceRequest.update({
+          where: { id },
+          data: { status: 'KAPATILDI', closedAt: new Date(), resolvedBy: userId },
+        });
+        this.events.emit('status_change', { id, status: 'KAPATILDI' });
+        return updated;
+      }
+      throw new ForbiddenException('Bu kaydı kapatma yetkiniz yok');
     }
 
+    // Diğer status değişiklikleri için teknik personel yetkisi gerekli
     if (!isTech) {
       throw new ForbiddenException('Bu işlem için teknik personel yetkisi gerekli');
     }
 
     const validTransitions: Record<string, string[]> = {
-      submitted: ['seen'],
-      seen: ['intervened'],
-      intervened: ['resolved'],
+      BEKLIYOR: ['ISLEMDE'],
+      ISLEMDE: ['BEKLIYOR', 'KAPATILDI'],
+      COZULDU: ['KAPATILDI'],
     };
 
     if (!validTransitions[request.status]?.includes(status)) {
@@ -115,10 +129,7 @@ export class TeknikServisService {
 
     const updated = await this.prisma.serviceRequest.update({
       where: { id },
-      data: {
-        status,
-        ...(status === 'resolved' ? { closedAt: new Date(), resolvedBy: userId } : {}),
-      },
+      data: { status },
     });
 
     this.events.emit('status_change', { id, status });
@@ -129,6 +140,10 @@ export class TeknikServisService {
     const request = await this.findOne(id);
     const isTech = await this.isTechUser(userId);
     const setting = await this.getSetting();
+
+    if (request.status !== 'ISLEMDE' && request.status !== 'BEKLIYOR') {
+      throw new BadRequestException('Sadece işlemdeki veya bekleyen kayıtlar çözüme kavuşturulabilir');
+    }
 
     if (setting?.closedBy === 'user' && request.reportedById === userId) {
       // user can close
@@ -141,7 +156,7 @@ export class TeknikServisService {
     return this.prisma.serviceRequest.update({
       where: { id },
       data: {
-        status: 'resolved',
+        status: 'COZULDU',
         resolution,
         closedAt: new Date(),
         resolvedBy: userId,
@@ -162,6 +177,32 @@ export class TeknikServisService {
     });
 
     this.events.emit('assignment', { id, assignedToId: userId });
+    return updated;
+  }
+
+  async assignToUser(id: number, targetUserId: number, requestingUserId: number) {
+    const isTech = await this.isTechUser(requestingUserId);
+    if (!isTech) {
+      throw new ForbiddenException('Teknik personel yetkisi gerekli');
+    }
+
+    const targetUser = await this.prisma.user.findUnique({ where: { id: targetUserId } });
+    if (!targetUser) throw new NotFoundException('Hedef kullanıcı bulunamadı');
+
+    const targetIsTech = targetUser.role === 'SUPER_ADMIN' || targetUser.role === 'ADMIN'
+      || !!(await this.prisma.serviceAssignment.findUnique({ where: { userId: targetUserId } }));
+
+    if (!targetIsTech) {
+      throw new BadRequestException('Hedef kullanıcı teknik personel değil');
+    }
+
+    await this.findOne(id);
+    const updated = await this.prisma.serviceRequest.update({
+      where: { id },
+      data: { assignedToId: targetUserId, status: 'ISLEMDE' },
+    });
+
+    this.events.emit('assignment', { id, assignedToId: targetUserId });
     return updated;
   }
 
@@ -241,5 +282,42 @@ export class TeknikServisService {
 
   async getSolutions() {
     return this.prisma.serviceSolution.findMany({ orderBy: { createdAt: 'desc' } });
+  }
+
+  async searchUsers(q: string) {
+    if (!q || q.length < 2) return [];
+    return this.prisma.user.findMany({
+      where: {
+        OR: [
+          { username: { contains: q } },
+          { contact: { firstName: { contains: q } } },
+          { contact: { lastName: { contains: q } } },
+          { contact: { sicilNo: { contains: q } } },
+        ],
+      },
+      include: {
+        contact: { select: { firstName: true, lastName: true, sicilNo: true } },
+      },
+      take: 10,
+    });
+  }
+
+  async getTechPersonnel() {
+    const admins = await this.prisma.user.findMany({
+      where: {
+        OR: [
+          { role: 'SUPER_ADMIN' },
+          { role: 'ADMIN' },
+          { serviceAssignment: { isNot: null } },
+        ],
+      },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+        contact: { select: { firstName: true, lastName: true } },
+      },
+    });
+    return admins;
   }
 }

@@ -514,6 +514,9 @@ export const api = {
   assignToSelf: (id: number) =>
     request(`/teknik-servis/admin/${id}/assign`, { method: 'PATCH' }),
 
+  assignToUser: (id: number, userId: number) =>
+    request(`/teknik-servis/admin/${id}/assign/${userId}`, { method: 'PATCH' }),
+
   adminUpdateStatus: (id: number, status: string) =>
     request(`/teknik-servis/admin/${id}/status`, {
       method: 'PATCH',
@@ -569,4 +572,14 @@ export const api = {
 
   deleteTechSolution: (id: number) =>
     request(`/admin/teknik-servis/solutions/${id}`, { method: 'DELETE' }),
+
+  searchTechUsers: async (q: string) => {
+    const res = await request<any>(`/admin/teknik-servis/users/search?q=${encodeURIComponent(q)}`);
+    return res.data ?? res;
+  },
+
+  getTechPersonnel: async () => {
+    const res = await request<any>('/admin/teknik-servis/personnel');
+    return res.data ?? res;
+  },
 };

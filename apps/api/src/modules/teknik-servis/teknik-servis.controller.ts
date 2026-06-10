@@ -134,6 +134,12 @@ export class TeknikServisController {
   }
 
   @Public()
+  @Patch('admin/:id/assign/:userId')
+  assignToUser(@Param('id') id: string, @Param('userId') userId: string, @Request() req) {
+    return this.service.assignToUser(+id, +userId, req.user?.id);
+  }
+
+  @Public()
   @Patch('admin/:id/status')
   adminUpdateStatus(@Param('id') id: string, @Body('status') status: string, @Request() req) {
     return this.service.updateStatus(+id, status, req.user?.id);

@@ -38,7 +38,7 @@ async function main() {
     { key: 'meal-plans', name: 'Yemek Listesi', description: 'Haftalık yemek listesi yönetimi' },
     { key: 'vesayet', name: 'Vesayet', description: 'Vesayet kısıtlı ve banka hesabı yönetimi' },
     { key: 'rehber-auth', name: 'Rehber Kimlik Doğrulama', description: 'Aktif edildiğinde telefon rehberini kullanmak için giriş yapmak zorunludur.', enabled: false },
-    { key: 'teknik-servis', name: 'Teknik Servis', description: 'Aktif edildiğinde kullanıcılar arıza bildirimi yapabilir.', enabled: false },
+    { key: 'teknik-servis', name: 'Teknik Servis', description: 'Aktif edildiğinde kullanıcılar arıza bildirimi yapabilir.', enabled: true },
   ];
   for (const mod of defaultModules) {
     await prisma.module.upsert({

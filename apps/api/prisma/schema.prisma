@@ -181,7 +181,7 @@ model ServiceRequest {
   id            Int      @id @default(autoincrement())
   title         String
   description   String
-  status        String   @default("submitted")
+  status        String   @default("BEKLIYOR")
   closedBy      String   @default("tech")
   closedAt      DateTime?
   resolvedBy    Int?
