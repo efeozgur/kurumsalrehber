@@ -5,9 +5,13 @@ import { api } from '@/lib/api';
 import { Ward } from '@/types';
 import {
   Scale, Building2, Banknote, TrendingUp,
-  DollarSign, Euro, Download, FileText, PieChart,
-  Globe, RefreshCw, Users, CircleDot,
+  DollarSign, Euro, Download, FileText, PieChart as PieIcon,
+  Globe, RefreshCw, Users, CircleDot, BarChart3,
 } from 'lucide-react';
+import {
+  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer,
+} from 'recharts';
 
 interface ExchangeRates {
   USD: number;
@@ -92,6 +96,37 @@ export default function VesayetDashboard() {
   const activeWardsStat = report?.activeWards ?? wards.filter(w => !w.isRemoved).length;
   const totalAccountsStat = report?.totalAccounts ?? totalAccounts;
 
+  const pieData = useMemo(() => {
+    const colors = ['#1ecab8', '#5766da', '#f93b7a'];
+    return currencies
+      .map(cur => ({ name: cur, value: balanceByCurrency[cur] || 0 }))
+      .filter(d => d.value > 0)
+      .map((d, i) => ({ ...d, fill: colors[i] }));
+  }, [balanceByCurrency, currencies]);
+
+  const bankChartData = useMemo(() => {
+    return bankTotals.slice(0, 8).map(([bank, byCur]) => ({
+      name: bank.length > 14 ? bank.slice(0, 14) + '..' : bank,
+      TL: byCur['TL'] || 0,
+      USD: byCur['USD'] || 0,
+      EUR: byCur['EUR'] || 0,
+    }));
+  }, [bankTotals]);
+
+  const accountTypeData = useMemo(() => {
+    const termCount: Record<string, number> = {};
+    wards.forEach(w => w.bankAccounts.forEach(a => {
+      const t = a.termType === 'vadeli' ? 'Vadeli' : 'Vadesiz';
+      termCount[t] = (termCount[t] || 0) + 1;
+    }));
+    return [
+      { name: 'Vadesiz', value: termCount['Vadesiz'] || 0, fill: '#00bcd4' },
+      { name: 'Vadeli', value: termCount['Vadeli'] || 0, fill: '#5766da' },
+    ].filter(d => d.value > 0);
+  }, [wards]);
+
+  const CURRENCY_COLORS: Record<string, string> = { TL: '#1ecab8', USD: '#5766da', EUR: '#f93b7a' };
+
   return (
     <div className="vesayet-body" style={{ backgroundColor: 'var(--v-bg)', padding: '28px 0 64px' }}>
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
@@ -140,7 +175,6 @@ export default function VesayetDashboard() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {currencies.map(cur => {
                   const total = balanceByCurrency[cur] ?? 0;
-                  const avg = report?.averageByCurrency?.[cur];
                   if (total === 0 && !report) return null;
                   return (
                     <div key={cur} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -150,9 +184,6 @@ export default function VesayetDashboard() {
                           {total.toLocaleString('tr-TR')}
                         </span>
                       </div>
-                      {avg != null && (
-                        <span style={{ fontSize: '11px', opacity: 0.7 }}>Ort: {avg.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}</span>
-                      )}
                     </div>
                   );
                 })}
@@ -237,55 +268,116 @@ export default function VesayetDashboard() {
 
           <div className="v-card">
             <div className="v-section-header">
-              <div className="v-section-icon" style={{ background: 'linear-gradient(120deg, rgb(0, 231, 149) 0px, rgb(0, 149, 226) 100%)' }}>
-                <PieChart className="w-5 h-6 text-white" />
+              <div className="v-section-icon" style={{ background: 'linear-gradient(120deg, rgb(123, 120, 201) 0px, rgb(96, 198, 243) 100%)' }}>
+                <PieIcon className="w-5 h-6 text-white" />
               </div>
               <div>
-                <h3 className="v-section-title">Hesap Bakiye Özeti</h3>
-                <p className="v-section-desc">Bankalara göre dağılım</p>
+                <h3 className="v-section-title">Para Birimi Dağılımı</h3>
+                <p className="v-section-desc">TL, USD, EUR bakiyelerinin oransal dağılımı</p>
               </div>
             </div>
-            {bankTotals.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '20px', color: '#98a6ad', fontSize: '13px' }}>
+            {pieData.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#98a6ad', fontSize: '13px' }}>
+                Henüz hesap bakiyesi bulunmuyor
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                <ResponsiveContainer width="55%" height={220}>
+                  <PieChart>
+                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={85}
+                      dataKey="value" paddingAngle={3}>
+                      {pieData.map((entry, idx) => (
+                        <Cell key={idx} fill={entry.fill} stroke="none" />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(v: number) => v.toLocaleString('tr-TR')} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, minWidth: '120px' }}>
+                  {pieData.map(d => (
+                    <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '10px', height: '10px', borderRadius: '3px', background: d.fill, flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#212529' }}>{d.name}</div>
+                        <div style={{ fontSize: '11px', color: '#676c79' }}>{d.value.toLocaleString('tr-TR')}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+          <div className="v-card">
+            <div className="v-section-header">
+              <div className="v-section-icon" style={{ background: 'linear-gradient(120deg, rgb(0, 231, 149) 0px, rgb(0, 149, 226) 100%)' }}>
+                <BarChart3 className="w-5 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="v-section-title">Banka Bazlı Bakiye</h3>
+                <p className="v-section-desc">En yüksek bakiyeli bankalar</p>
+              </div>
+            </div>
+            {bankChartData.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#98a6ad', fontSize: '13px' }}>
                 Henüz banka hesabı bulunmuyor
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {bankTotals.slice(0, 6).map(([bank, byCur]) => {
-                  const tlAmt = byCur['TL'] || 0;
-                  const tlPct = (balanceByCurrency['TL'] || 1) > 0 ? (tlAmt / (balanceByCurrency['TL'] || 1)) * 100 : 0;
-                  return (
-                    <div key={bank}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 500, color: '#212529' }}>{bank}</span>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          {currencies.map(cur => {
-                            const amt = byCur[cur];
-                            if (!amt) return null;
-                            return (
-                              <span key={cur} style={{ fontSize: '12px', fontWeight: 600, color: '#212529' }}>
-                                {amt.toLocaleString('tr-TR')} {cur}
-                              </span>
-                            );
-                          })}
-                        </div>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={bankChartData} layout="vertical" margin={{ top: 6, right: 20, left: 8, bottom: 6 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: '#676c79' }} />
+                  <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11, fill: '#676c79' }} />
+                  <Tooltip formatter={(v: number) => v.toLocaleString('tr-TR')} />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '6px' }} />
+                  <Bar dataKey="TL" name="TL" fill="#1ecab8" radius={[0, 3, 3, 0]} stackId="a" />
+                  <Bar dataKey="USD" name="USD" fill="#5766da" radius={[0, 3, 3, 0]} stackId="a" />
+                  <Bar dataKey="EUR" name="EUR" fill="#f93b7a" radius={[0, 3, 3, 0]} stackId="a" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          <div className="v-card">
+            <div className="v-section-header">
+              <div className="v-section-icon" style={{ background: 'linear-gradient(120deg, rgb(246, 211, 101) 0px, rgb(255, 120, 80) 100%)' }}>
+                <BarChart3 className="w-5 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="v-section-title">Hesap Türü Dağılımı</h3>
+                <p className="v-section-desc">Vadeli / Vadesiz hesap sayısı</p>
+              </div>
+            </div>
+            {accountTypeData.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#98a6ad', fontSize: '13px' }}>
+                Henüz hesap bulunmuyor
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                <ResponsiveContainer width="55%" height={220}>
+                  <PieChart>
+                    <Pie data={accountTypeData} cx="50%" cy="50%" innerRadius={50} outerRadius={80}
+                      dataKey="value" paddingAngle={4}>
+                      {accountTypeData.map((entry, idx) => (
+                        <Cell key={idx} fill={entry.fill} stroke="none" />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, minWidth: '120px' }}>
+                  {accountTypeData.map(d => (
+                    <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '10px', height: '10px', borderRadius: '3px', background: d.fill, flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#212529' }}>{d.name}</div>
+                        <div style={{ fontSize: '11px', color: '#676c79' }}>{d.value} hesap</div>
                       </div>
-                      {tlAmt > 0 && (
-                        <>
-                          <div style={{ height: '5px', borderRadius: '3px', background: '#e9ecef', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', borderRadius: '3px', width: `${tlPct}%`, background: '#5766da', transition: 'width 0.5s ease' }} />
-                          </div>
-                          <div style={{ fontSize: '10px', color: '#98a6ad', marginTop: '2px' }}>TL dağılım: %{tlPct.toFixed(1)}</div>
-                        </>
-                      )}
                     </div>
-                  );
-                })}
-                {bankTotals.length > 6 && (
-                  <div style={{ textAlign: 'center', fontSize: '12px', color: '#5766da', marginTop: '4px' }}>
-                    +{bankTotals.length - 6} banka daha...
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
             )}
           </div>
