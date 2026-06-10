@@ -37,7 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   const showVesayet = user?.role === 'SUPER_ADMIN' || user?.role === 'VESAYET_ADMIN';
-  const showTeknikServis = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' || user?.role === 'TEKNIK_SERVIS';
+  const showTeknikServis = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
   const menuItems = [
     ...baseMenuItems.filter((item) => {
       if (item.href === '/admin/meal-plans') return mealPlansEnabled;
@@ -73,6 +73,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!loading && user && user.role === 'VESAYET_ADMIN') {
       router.push('/vesayet');
+    }
+  }, [loading, user, router]);
+
+  // TEKNIK_SERVIS rolündekileri teknik servis sayfasına yönlendir
+  useEffect(() => {
+    if (!loading && user && user.role === 'TEKNIK_SERVIS') {
+      router.push('/teknik-servis/yonetim');
     }
   }, [loading, user, router]);
 

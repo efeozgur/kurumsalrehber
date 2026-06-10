@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { List, Clock, CheckCircle, AlertTriangle, User, Eye, Search } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
@@ -15,8 +16,15 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 
 export default function YonetimPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user && user.role === 'USER') {
+      router.push('/');
+    }
+  }, [user, router]);
   const [filter, setFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 

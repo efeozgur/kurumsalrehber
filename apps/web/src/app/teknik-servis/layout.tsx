@@ -9,11 +9,20 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
-const navItems = [
-  { href: '/teknik-servis', label: 'Ana Sayfa', icon: Home },
-  { href: '/teknik-servis/ekle', label: 'Arıza Kaydı', icon: PlusCircle },
-  { href: '/teknik-servis/kayitlarim', label: 'Kayıtlarım', icon: List },
-];
+const getNavItems = (role?: string) => {
+  if (role === 'TEKNIK_SERVIS') {
+    return [
+      { href: '/teknik-servis/yonetim', label: 'Tüm Kayıtlar', icon: List },
+      { href: '/teknik-servis/ekle', label: 'Arıza Kaydı', icon: PlusCircle },
+      { href: '/teknik-servis/kayitlarim', label: 'Kayıtlarım', icon: Home },
+    ];
+  }
+  return [
+    { href: '/teknik-servis', label: 'Ana Sayfa', icon: Home },
+    { href: '/teknik-servis/ekle', label: 'Arıza Kaydı', icon: PlusCircle },
+    { href: '/teknik-servis/kayitlarim', label: 'Kayıtlarım', icon: List },
+  ];
+};
 
 export default function TeknikServisLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading, user } = useAuth();
@@ -41,7 +50,10 @@ export default function TeknikServisLayout({ children }: { children: React.React
   if (!isAuthenticated) return null;
 
   const isDetailPage = pathname.startsWith('/teknik-servis/kayit/') && !pathname.startsWith('/teknik-servis/kayitlarim');
-  const isYonetim = pathname.startsWith('/teknik-servis/yonetim');
+  const navItems = getNavItems(user?.role);
+  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
+  const isUser = user?.role === 'USER';
+  const isTech = user?.role === 'TEKNIK_SERVIS';
 
   return (
     <div className="min-h-screen bg-surface">
@@ -59,7 +71,7 @@ export default function TeknikServisLayout({ children }: { children: React.React
             </div>
             <div>
               <p className="font-semibold text-white text-sm">Teknik Servis</p>
-              <p className="text-xs text-gray-500">Arıza Takip Sistemi</p>
+              <p className="text-xs text-gray-500">{isTech ? 'Teknisyen Paneli' : 'Arıza Takip Sistemi'}</p>
             </div>
           </div>
 
@@ -81,26 +93,26 @@ export default function TeknikServisLayout({ children }: { children: React.React
               );
             })}
 
-            {user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' || user?.role === 'TEKNIK_SERVIS' ? (
+            {(isAdmin) ? (
               <>
                 <div className="pt-4 pb-2">
                   <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-600">Yönetim</p>
                 </div>
                 <Link
                   href="/teknik-servis/yonetim"
-                  className={`sidebar-item ${isYonetim ? 'sidebar-item-active' : 'sidebar-item-inactive'}`}
+                  className={`sidebar-item ${pathname.startsWith('/teknik-servis/yonetim') ? 'sidebar-item-active' : 'sidebar-item-inactive'}`}
                   onClick={() => setSidebarOpen(false)}
                 >
                   <List className="w-4 h-4" />
                   Tüm Kayıtlar
-                  {isYonetim && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                  {pathname.startsWith('/teknik-servis/yonetim') && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400" />}
                 </Link>
               </>
             ) : null}
           </nav>
 
           <div className="p-4 border-t border-white/[0.06]">
-            {user?.role !== 'USER' ? (
+            {isAdmin ? (
               <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03]">
                 <Link href="/admin" className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
                   <ArrowLeft className="w-4 h-4" />
@@ -110,8 +122,7 @@ export default function TeknikServisLayout({ children }: { children: React.React
             ) : (
               <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/[0.03]">
                 <div className="flex items-center gap-2 text-sm text-gray-400">
-                  {user?.firstName && <span>{user.firstName} {user.lastName}</span>}
-                  {user?.sicilNo && <span className="text-xs text-gray-600">({user.sicilNo})</span>}
+                  {user?.username && <span>{user.username}</span>}
                 </div>
                 <button
                   onClick={() => { localStorage.removeItem('token'); window.location.href = '/giris'; }}
