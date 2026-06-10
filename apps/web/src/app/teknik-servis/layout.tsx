@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  Wrench, PlusCircle, List, Home, LogOut, Menu, X, Phone, ArrowLeft, Clock, TrendingUp,
+  Wrench, PlusCircle, List, Home, LogOut, Menu, X, Phone, ArrowLeft, Clock, TrendingUp, Book,
 } from 'lucide-react';
 const getNavItems = (role?: string) => {
   if (role === 'TEKNIK_SERVIS') {
@@ -73,6 +73,15 @@ export default function TeknikServisLayout({ children }: { children: React.React
           </div>
 
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            <Link
+              href="/"
+              className="sidebar-item sidebar-item-inactive mb-2"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <Book className="w-4 h-4" />
+              Rehber Ana Sayfa
+            </Link>
+            <div className="border-t border-white/[0.06] my-2" />
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || (item.href !== '/teknik-servis' && pathname.startsWith(item.href + '/'));
