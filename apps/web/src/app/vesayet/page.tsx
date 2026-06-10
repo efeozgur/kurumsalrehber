@@ -6,7 +6,7 @@ import { Ward } from '@/types';
 import {
   Scale, Building2, Banknote, TrendingUp,
   DollarSign, Euro, Download, FileText, PieChart,
-  Globe, RefreshCw, Users,
+  Globe, RefreshCw, Users, CircleDot,
 } from 'lucide-react';
 
 interface ExchangeRates {
@@ -25,6 +25,10 @@ interface ReportSummary {
   bankBreakdown: Record<string, { count: number; byCurrency: Record<string, number> }>;
   currencyBreakdown: Record<string, number>;
   averageByCurrency: Record<string, number>;
+  totalGoldAccounts: number;
+  totalGoldGram: number;
+  averageGoldGram: number;
+  goldByType: Record<string, { gram: number; quantity: number }>;
 }
 
 export default function VesayetDashboard() {
@@ -161,23 +165,28 @@ export default function VesayetDashboard() {
 
           <div className="v-card" style={{ padding: '20px 24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <div className="v-stat-label" style={{ margin: 0 }}>Para Birimleri</div>
-              <Globe className="w-4 h-4" style={{ color: '#98a6ad' }} />
+              <div className="v-stat-label" style={{ margin: 0 }}>Altın</div>
+              <CircleDot className="w-4 h-4" style={{ color: '#98a6ad' }} />
             </div>
-            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-              {Object.entries(balanceByCurrency).length > 0 ? currencies.map(cur => {
-                const total = balanceByCurrency[cur] ?? 0;
-                if (total === 0) return null;
-                return (
-                  <div key={cur} style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#212529' }}>{cur}</div>
-                    <div style={{ fontSize: '12px', color: '#676c79' }}>{total.toLocaleString('tr-TR')}</div>
-                  </div>
-                );
-              }) : (
-                <div style={{ fontSize: '12px', color: '#98a6ad' }}>Veri yok</div>
-              )}
-            </div>
+            {report || wards.some(w => w.goldAccounts?.length) ? (
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 700, color: '#212529' }}>
+                  {report ? report.totalGoldGram.toFixed(2) : wards.reduce((s, w) => s + (w.goldAccounts || []).reduce((sg, g) => sg + g.gram * g.quantity, 0), 0).toFixed(2)} gr
+                </div>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '6px', flexWrap: 'wrap' }}>
+                  {report && Object.entries(report.goldByType).length > 0 ? Object.entries(report.goldByType).slice(0, 4).map(([type, data]) => (
+                    <div key={type} style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 600, color: '#212529' }}>{type}</div>
+                      <div style={{ fontSize: '11px', color: '#676c79' }}>{data.gram.toFixed(1)} gr / {data.quantity} adet</div>
+                    </div>
+                  )) : (
+                    <div style={{ fontSize: '12px', color: '#98a6ad' }}>Altın hesabı bulunmuyor</div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div style={{ fontSize: '12px', color: '#98a6ad' }}>Altın hesabı bulunmuyor</div>
+            )}
           </div>
         </div>
 

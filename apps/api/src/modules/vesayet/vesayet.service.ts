@@ -6,6 +6,8 @@ import { CreateWardDto } from './dto/create-ward.dto';
 import { UpdateWardDto } from './dto/update-ward.dto';
 import { CreateBankAccountDto } from './dto/create-bank-account.dto';
 import { UpdateBankAccountDto } from './dto/update-bank-account.dto';
+import { CreateGoldAccountDto } from './dto/create-gold-account.dto';
+import { UpdateGoldAccountDto } from './dto/update-gold-account.dto';
 
 @Injectable()
 export class VesayetService {
@@ -18,7 +20,7 @@ export class VesayetService {
 
   async findAllWards() {
     return this.prisma.ward.findMany({
-      include: { bankAccounts: true },
+      include: { bankAccounts: true, goldAccounts: true },
       orderBy: { lastName: 'asc' },
     });
   }
@@ -26,32 +28,35 @@ export class VesayetService {
   async findWard(id: number) {
     const ward = await this.prisma.ward.findUnique({
       where: { id },
-      include: { bankAccounts: true },
+      include: { bankAccounts: true, goldAccounts: true },
     });
     if (!ward) throw new NotFoundException('Kısıtlı bulunamadı');
     return ward;
   }
 
   async createWard(dto: CreateWardDto) {
-    const { bankAccounts, ...wardData } = dto;
+    const { bankAccounts, goldAccounts, ...wardData } = dto;
     return this.prisma.ward.create({
       data: {
         ...wardData,
         bankAccounts: bankAccounts?.length
           ? { create: bankAccounts }
           : undefined,
+        goldAccounts: goldAccounts?.length
+          ? { create: goldAccounts }
+          : undefined,
       },
-      include: { bankAccounts: true },
+      include: { bankAccounts: true, goldAccounts: true },
     });
   }
 
   async updateWard(id: number, dto: UpdateWardDto) {
     await this.findWard(id);
-    const { bankAccounts, ...wardData } = dto;
+    const { bankAccounts, goldAccounts, ...wardData } = dto;
     return this.prisma.ward.update({
       where: { id },
       data: wardData,
-      include: { bankAccounts: true },
+      include: { bankAccounts: true, goldAccounts: true },
     });
   }
 
@@ -88,6 +93,36 @@ export class VesayetService {
     const account = await this.prisma.bankAccount.findUnique({ where: { id } });
     if (!account) throw new NotFoundException('Banka hesabı bulunamadı');
     return this.prisma.bankAccount.delete({ where: { id } });
+  }
+
+  // ─── GoldAccount ─────────────────────────────────────────
+
+  async findGoldAccountsByWard(wardId: number) {
+    return this.prisma.goldAccount.findMany({
+      where: { wardId },
+      orderBy: { bankName: 'asc' },
+    });
+  }
+
+  async createGoldAccount(dto: CreateGoldAccountDto) {
+    return this.prisma.goldAccount.create({
+      data: dto,
+    });
+  }
+
+  async updateGoldAccount(id: number, dto: UpdateGoldAccountDto) {
+    const account = await this.prisma.goldAccount.findUnique({ where: { id } });
+    if (!account) throw new NotFoundException('Altın hesabı bulunamadı');
+    return this.prisma.goldAccount.update({
+      where: { id },
+      data: dto,
+    });
+  }
+
+  async removeGoldAccount(id: number) {
+    const account = await this.prisma.goldAccount.findUnique({ where: { id } });
+    if (!account) throw new NotFoundException('Altın hesabı bulunamadı');
+    return this.prisma.goldAccount.delete({ where: { id } });
   }
 
   // ─── Exchange Rates ──────────────────────────────────────
@@ -140,7 +175,7 @@ export class VesayetService {
 
   async getReportSummary() {
     const wards = await this.prisma.ward.findMany({
-      include: { bankAccounts: true },
+      include: { bankAccounts: true, goldAccounts: true },
     });
 
     const totalWards = wards.length;
@@ -151,6 +186,10 @@ export class VesayetService {
     const currencyBreakdown: Record<string, number> = {};
     const bankBreakdown: Record<string, { count: number; byCurrency: Record<string, number> }> = {};
     const accountCountByCurrency: Record<string, number> = {};
+
+    let totalGoldAccounts = 0;
+    let totalGoldGram = 0;
+    const goldByType: Record<string, { gram: number; quantity: number }> = {};
 
     for (const w of wards) {
       for (const a of w.bankAccounts) {
@@ -163,6 +202,14 @@ export class VesayetService {
         bankBreakdown[a.bankName].count++;
         bankBreakdown[a.bankName].byCurrency[cur] = (bankBreakdown[a.bankName].byCurrency[cur] || 0) + a.amount;
       }
+
+      for (const g of w.goldAccounts) {
+        totalGoldAccounts++;
+        totalGoldGram += g.gram * g.quantity;
+        if (!goldByType[g.goldType]) goldByType[g.goldType] = { gram: 0, quantity: 0 };
+        goldByType[g.goldType].gram += g.gram * g.quantity;
+        goldByType[g.goldType].quantity += g.quantity;
+      }
     }
 
     const averageByCurrency: Record<string, number> = {};
@@ -170,6 +217,8 @@ export class VesayetService {
       const count = accountCountByCurrency[cur] || 1;
       averageByCurrency[cur] = total / count;
     }
+
+    const averageGoldGram = totalGoldAccounts > 0 ? totalGoldGram / totalGoldAccounts : 0;
 
     return {
       totalWards,
@@ -179,6 +228,10 @@ export class VesayetService {
       bankBreakdown,
       currencyBreakdown,
       averageByCurrency,
+      totalGoldAccounts,
+      totalGoldGram,
+      averageGoldGram,
+      goldByType,
     };
   }
 }

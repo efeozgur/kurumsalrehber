@@ -9,7 +9,7 @@ import BankNameSelect from '@/components/BankNameSelect';
 import {
   ArrowLeft, Scale, Banknote, Pencil, Trash2, Plus,
   Building2, Save, X, User, Hash, FileText, Wallet,
-  CreditCard, Calendar,
+  CreditCard, Calendar, CircleDot,
 } from 'lucide-react';
 
 export default function KisitliDetailPage() {
@@ -44,6 +44,18 @@ export default function KisitliDetailPage() {
   const [editAccAmount, setEditAccAmount] = useState('');
   const [editAccCurrency, setEditAccCurrency] = useState('TL');
   const [editAccTermType, setEditAccTermType] = useState('vadesiz');
+
+  const [showGoldForm, setShowGoldForm] = useState(false);
+  const [goldBankName, setGoldBankName] = useState('');
+  const [goldType, setGoldType] = useState('');
+  const [goldGram, setGoldGram] = useState('');
+  const [goldQuantity, setGoldQuantity] = useState('1');
+
+  const [editingGoldId, setEditingGoldId] = useState<number | null>(null);
+  const [editGoldBankName, setEditGoldBankName] = useState('');
+  const [editGoldType, setEditGoldType] = useState('');
+  const [editGoldGram, setEditGoldGram] = useState('');
+  const [editGoldQuantity, setEditGoldQuantity] = useState('1');
 
   useEffect(() => {
     api.getWard(id).then((data) => {
@@ -137,6 +149,69 @@ export default function KisitliDetailPage() {
     }
   };
 
+  // ─── Gold Account Handlers ─────────────────────────────
+
+  const handleAddGold = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.createGoldAccount({
+        bankName: goldBankName,
+        goldType,
+        gram: parseFloat(goldGram) || 0,
+        quantity: parseInt(goldQuantity) || 1,
+        wardId: id,
+      });
+      setShowGoldForm(false);
+      setGoldBankName('');
+      setGoldType('');
+      setGoldGram('');
+      setGoldQuantity('1');
+      const updated = await api.getWard(id);
+      setWard(updated);
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const startEditGold = (acc: Ward['goldAccounts'][0]) => {
+    setEditingGoldId(acc.id);
+    setEditGoldBankName(acc.bankName);
+    setEditGoldType(acc.goldType);
+    setEditGoldGram(String(acc.gram));
+    setEditGoldQuantity(String(acc.quantity));
+  };
+
+  const cancelEditGold = () => {
+    setEditingGoldId(null);
+  };
+
+  const handleUpdateGold = async (accountId: number) => {
+    try {
+      await api.updateGoldAccount(accountId, {
+        bankName: editGoldBankName,
+        goldType: editGoldType,
+        gram: parseFloat(editGoldGram) || 0,
+        quantity: parseInt(editGoldQuantity) || 1,
+      });
+      setEditingGoldId(null);
+      const updated = await api.getWard(id);
+      setWard(updated);
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleDeleteGold = async (accountId: number) => {
+    if (!confirm('Altın hesabı silinecek. Emin misiniz?')) return;
+    try {
+      await api.deleteGoldAccount(accountId);
+      const updated = await api.getWard(id);
+      setWard(updated);
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className="vesayet-body" style={{ backgroundColor: '#f1f5f9', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -155,6 +230,9 @@ export default function KisitliDetailPage() {
     return map;
   }, {});
   const currencies = ['TL', 'USD', 'EUR'] as const;
+
+  const totalGoldGram = ward.goldAccounts.reduce((s, g) => s + g.gram * g.quantity, 0);
+  const totalGoldItems = ward.goldAccounts.reduce((s, g) => s + g.quantity, 0);
 
   return (
     <div className="vesayet-body" style={{ backgroundColor: '#f1f5f9', minHeight: '100vh' }}>
@@ -359,6 +437,15 @@ export default function KisitliDetailPage() {
               <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#667eea', marginBottom: '4px' }}>Toplam Hesap</div>
               <div style={{ fontSize: '22px', fontWeight: 700, color: '#1e293b' }}>{ward.bankAccounts.length}</div>
             </div>
+            {ward.goldAccounts.length > 0 && (
+              <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,193,7,0.06)', border: '1px solid rgba(255,193,7,0.12)' }}>
+                <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#b8860b', marginBottom: '4px' }}>
+                  <CircleDot className="w-3 h-3" style={{ display: 'inline', marginRight: '4px' }} />Altın
+                </div>
+                <div style={{ fontSize: '22px', fontWeight: 700, color: '#1e293b' }}>{totalGoldGram.toFixed(2)} gr</div>
+                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{totalGoldItems} adet, {ward.goldAccounts.length} hesap</div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -544,6 +631,166 @@ export default function KisitliDetailPage() {
             </div>
           )}
         </div>
+
+        {/* ─── Altın Hesapları ─── */}
+        <div className="v-card" style={{ padding: '0', marginTop: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 32px', borderBottom: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'linear-gradient(135deg, #ffc107, #b8860b)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CircleDot className="w-5 h-6 text-white" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#1e293b' }}>Altın Hesapları</h3>
+                <p style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>{ward.goldAccounts.length} kayıtlı altın hesabı</p>
+              </div>
+            </div>
+            <button onClick={() => setShowGoldForm(!showGoldForm)} className="v-btn-ghost" style={{ fontSize: '12px' }}>
+              {showGoldForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+              {showGoldForm ? 'İptal' : 'Altın Ekle'}
+            </button>
+          </div>
+
+          {showGoldForm && (
+            <form onSubmit={handleAddGold} style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', background: '#fafbfc' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #ffc107, #b8860b)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Plus className="w-4 h-4 text-white" />
+                </div>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>Yeni Altın Hesabı Ekle</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="v-label">Banka Adı *</label>
+                  <BankNameSelect required value={goldBankName} onChange={(v) => setGoldBankName(v)} />
+                </div>
+                <div>
+                  <label className="v-label">Altın Türü *</label>
+                  <input required placeholder="24 Ayar, Çeyrek, Yarım, Tam..." value={goldType} onChange={(e) => setGoldType(e.target.value)} className="v-input" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                  <label className="v-label">Gram *</label>
+                  <input type="number" step="0.01" placeholder="0.00" value={goldGram} onChange={(e) => setGoldGram(e.target.value)} className="v-input" />
+                </div>
+                <div>
+                  <label className="v-label">Adet</label>
+                  <input type="number" min="1" value={goldQuantity} onChange={(e) => setGoldQuantity(e.target.value)} className="v-input" />
+                </div>
+              </div>
+              <button type="submit" className="v-btn-primary" style={{ fontSize: '13px', padding: '10px 20px' }}>Ekle</button>
+            </form>
+          )}
+
+          {ward.goldAccounts.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '48px 0', color: '#9ca3af', fontSize: '14px' }}>
+              <CircleDot className="w-8 h-8" style={{ margin: '0 auto 8px', opacity: 0.4 }} />
+              Henüz altın hesabı eklenmemiş
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="v-table">
+                <thead>
+                  <tr>
+                    <th>Banka</th>
+                    <th>Altın Türü</th>
+                    <th>Gram</th>
+                    <th>Adet</th>
+                    <th>Toplam Gram</th>
+                    <th style={{ textAlign: 'right' }}>İşlem</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ward.goldAccounts.map((acc) => {
+                    const isEditing = editingGoldId === acc.id;
+                    return (
+                      <tr key={acc.id}>
+                        <td>
+                          {isEditing ? (
+                            <BankNameSelect value={editGoldBankName} onChange={(v) => setEditGoldBankName(v)} />
+                          ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(255,193,7,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <CircleDot className="w-3.5 h-3.5" style={{ color: '#b8860b' }} />
+                              </div>
+                              <span style={{ fontWeight: 500, color: '#1e293b' }}>{acc.bankName}</span>
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          {isEditing ? (
+                            <input value={editGoldType} onChange={(e) => setEditGoldType(e.target.value)} className="v-input text-sm" />
+                          ) : (
+                            <span className="v-badge" style={{ background: 'rgba(255,193,7,0.12)', color: '#92400e' }}>{acc.goldType}</span>
+                          )}
+                        </td>
+                        <td>
+                          {isEditing ? (
+                            <input type="number" step="0.01" value={editGoldGram} onChange={(e) => setEditGoldGram(e.target.value)} className="v-input text-sm" style={{ width: '90px' }} />
+                          ) : (
+                            <span style={{ fontWeight: 600, color: '#1e293b' }}>{acc.gram.toFixed(2)} gr</span>
+                          )}
+                        </td>
+                        <td>
+                          {isEditing ? (
+                            <input type="number" min="1" value={editGoldQuantity} onChange={(e) => setEditGoldQuantity(e.target.value)} className="v-input text-sm" style={{ width: '70px' }} />
+                          ) : (
+                            <span style={{ color: '#64748b' }}>{acc.quantity} adet</span>
+                          )}
+                        </td>
+                        <td>
+                          <span style={{ fontWeight: 600, color: '#b8860b' }}>{(acc.gram * acc.quantity).toFixed(2)} gr</span>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                            {isEditing ? (
+                              <>
+                                <button onClick={() => handleUpdateGold(acc.id)}
+                                  style={{ padding: '6px', borderRadius: '6px', color: '#28a745', display: 'inline-flex', background: 'none', border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(40,167,69,0.08)'; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                >
+                                  <Save className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={cancelEditGold}
+                                  style={{ padding: '6px', borderRadius: '6px', color: '#6c757d', display: 'inline-flex', background: 'none', border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(108,117,125,0.08)'; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button onClick={() => startEditGold(acc)}
+                                  style={{ padding: '6px', borderRadius: '6px', color: '#64748b', display: 'inline-flex', background: 'none', border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.color = '#b8860b'; e.currentTarget.style.background = 'rgba(255,193,7,0.08)'; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.background = 'transparent'; }}
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                {isSuper && (
+                                  <button onClick={() => handleDeleteGold(acc.id)}
+                                    style={{ padding: '6px', borderRadius: '6px', color: '#64748b', display: 'inline-flex', background: 'none', border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.color = '#dc3545'; e.currentTarget.style.background = 'rgba(220,53,69,0.08)'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.background = 'transparent'; }}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );

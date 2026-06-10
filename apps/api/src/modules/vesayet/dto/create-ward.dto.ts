@@ -1,4 +1,4 @@
-import { IsString, IsBoolean, IsOptional, IsArray, IsNumber, ValidateNested } from 'class-validator';
+import { IsString, IsBoolean, IsOptional, IsArray, IsNumber, IsInt, ValidateNested, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -22,6 +22,26 @@ export class CreateBankAccountDto {
   @ApiProperty({ enum: ['vadeli', 'vadesiz'] })
   @IsString()
   termType: string;
+}
+
+export class CreateGoldAccountDto {
+  @ApiProperty()
+  @IsString()
+  bankName: string;
+
+  @ApiProperty()
+  @IsString()
+  goldType: string;
+
+  @ApiProperty()
+  @IsNumber()
+  @Min(0)
+  gram: number;
+
+  @ApiProperty({ default: 1 })
+  @IsInt()
+  @Min(1)
+  quantity: number;
 }
 
 export class CreateWardDto {
@@ -52,4 +72,11 @@ export class CreateWardDto {
   @ValidateNested({ each: true })
   @Type(() => CreateBankAccountDto)
   bankAccounts?: CreateBankAccountDto[];
+
+  @ApiProperty({ type: [CreateGoldAccountDto], required: false })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateGoldAccountDto)
+  goldAccounts?: CreateGoldAccountDto[];
 }

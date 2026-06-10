@@ -116,6 +116,17 @@ export interface BankAccount {
   updatedAt: string;
 }
 
+export interface GoldAccount {
+  id: number;
+  bankName: string;
+  goldType: string;
+  gram: number;
+  quantity: number;
+  wardId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Ward {
   id: number;
   firstName: string;
@@ -126,4 +137,5 @@ export interface Ward {
   createdAt: string;
   updatedAt: string;
   bankAccounts: BankAccount[];
+  goldAccounts: GoldAccount[];
 }

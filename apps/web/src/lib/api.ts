@@ -379,6 +379,26 @@ export const api = {
   deleteBank: (id: number) =>
     request(`/admin/vesayet/banks/${id}`, { method: 'DELETE' }),
 
+  getWardGoldAccounts: async (wardId: number) => {
+    const res = await request<any>(`/admin/vesayet/wards/${wardId}/gold-accounts`);
+    return res.data ?? res;
+  },
+
+  createGoldAccount: (data: any) =>
+    request('/admin/vesayet/gold-accounts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateGoldAccount: (id: number, data: any) =>
+    request(`/admin/vesayet/gold-accounts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  deleteGoldAccount: (id: number) =>
+    request(`/admin/vesayet/gold-accounts/${id}`, { method: 'DELETE' }),
+
   getExchangeRates: async () => {
     const res = await request<any>('/admin/vesayet/exchange-rates');
     return res.data ?? res;

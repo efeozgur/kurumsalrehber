@@ -15,6 +15,8 @@ import { CreateWardDto } from './dto/create-ward.dto';
 import { UpdateWardDto } from './dto/update-ward.dto';
 import { CreateBankAccountDto } from './dto/create-bank-account.dto';
 import { UpdateBankAccountDto } from './dto/update-bank-account.dto';
+import { CreateGoldAccountDto } from './dto/create-gold-account.dto';
+import { UpdateGoldAccountDto } from './dto/update-gold-account.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { ModuleAccess } from '../../common/decorators/module-access.decorator';
 import { ModuleGuard } from '../../common/guards/module.guard';
@@ -76,6 +78,29 @@ export class VesayetController {
   @Delete('accounts/:id')
   removeAccount(@Param('id') id: string) {
     return this.vesayetService.removeAccount(+id);
+  }
+
+  // ─── GoldAccount ──────────────────────────────────────────
+
+  @Get('wards/:wardId/gold-accounts')
+  findGoldAccounts(@Param('wardId') wardId: string) {
+    return this.vesayetService.findGoldAccountsByWard(+wardId);
+  }
+
+  @Post('gold-accounts')
+  createGoldAccount(@Body() dto: CreateGoldAccountDto) {
+    return this.vesayetService.createGoldAccount(dto);
+  }
+
+  @Put('gold-accounts/:id')
+  updateGoldAccount(@Param('id') id: string, @Body() dto: UpdateGoldAccountDto) {
+    return this.vesayetService.updateGoldAccount(+id, dto);
+  }
+
+  @Roles('SUPER_ADMIN')
+  @Delete('gold-accounts/:id')
+  removeGoldAccount(@Param('id') id: string) {
+    return this.vesayetService.removeGoldAccount(+id);
   }
 
   // ─── Banks ────────────────────────────────────────────────

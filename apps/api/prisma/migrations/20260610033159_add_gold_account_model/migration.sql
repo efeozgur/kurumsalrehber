@@ -1,0 +1,12 @@
+-- CreateTable
+CREATE TABLE "GoldAccount" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "bankName" TEXT NOT NULL,
+    "goldType" TEXT NOT NULL,
+    "gram" REAL NOT NULL,
+    "quantity" INTEGER NOT NULL DEFAULT 1,
+    "wardId" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "GoldAccount_wardId_fkey" FOREIGN KEY ("wardId") REFERENCES "Ward" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
