@@ -100,12 +100,27 @@ export default function TeknikServisLayout({ children }: { children: React.React
           </nav>
 
           <div className="p-4 border-t border-white/[0.06]">
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03]">
-              <Link href="/admin" className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
-                <ArrowLeft className="w-4 h-4" />
-                Admin Panel
-              </Link>
-            </div>
+            {user?.role !== 'USER' ? (
+              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03]">
+                <Link href="/admin" className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
+                  <ArrowLeft className="w-4 h-4" />
+                  Admin Panel
+                </Link>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/[0.03]">
+                <div className="flex items-center gap-2 text-sm text-gray-400">
+                  {user?.firstName && <span>{user.firstName} {user.lastName}</span>}
+                  {user?.sicilNo && <span className="text-xs text-gray-600">({user.sicilNo})</span>}
+                </div>
+                <button
+                  onClick={() => { localStorage.removeItem('token'); window.location.href = '/giris'; }}
+                  className="text-xs text-gray-500 hover:text-red-400 transition-colors"
+                >
+                  Çıkış
+                </button>
+              </div>
+            )}
           </div>
         </aside>
 

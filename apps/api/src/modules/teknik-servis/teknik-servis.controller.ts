@@ -18,8 +18,6 @@ import { memoryStorage } from 'multer';
 import { ApiBearerAuth, ApiConsumes, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { TeknikServisService } from './teknik-servis.service';
 import { ServisEventsService } from './servis-events.service';
-import { Public } from '../../common/decorators/public.decorator';
-import { Roles } from '../../common/decorators/roles.decorator';
 import { ModuleAccess } from '../../common/decorators/module-access.decorator';
 import { ModuleGuard } from '../../common/guards/module.guard';
 import { UseGuards } from '@nestjs/common';
@@ -38,7 +36,6 @@ export class TeknikServisController {
     private eventsService: ServisEventsService,
   ) {}
 
-  @Public()
   @Post()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
@@ -69,21 +66,18 @@ export class TeknikServisController {
     return this.service.create({ title, description, image: imagePath }, req.user?.id);
   }
 
-  @Public()
   @Get('my')
   getMy(@Request() req) {
     if (!req.user?.id) throw new BadRequestException('Giriş yapmalısınız');
     return this.service.findByUser(req.user.id);
   }
 
-  @Public()
   @Get('solutions')
   @ApiQuery({ name: 'q', required: true })
   searchSolutions(@Query('q') q: string) {
     return this.service.searchSolutions(q || '');
   }
 
-  @Public()
   @Get('events')
   events(@Request() req, @Res() res: Response) {
     if (!req.user?.id) {
@@ -107,13 +101,11 @@ export class TeknikServisController {
     });
   }
 
-  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.service.findOne(+id);
   }
 
-  @Public()
   @Patch(':id/status')
   updateStatus(@Param('id') id: string, @Body('status') status: string, @Request() req) {
     return this.service.updateStatus(+id, status, req.user?.id);
@@ -121,31 +113,26 @@ export class TeknikServisController {
 
   // ─── Teknik Personel / Admin ───────────────────────
 
-  @Public()
   @Get('admin/all')
   findAll() {
     return this.service.findAll();
   }
 
-  @Public()
   @Patch('admin/:id/assign')
   assignToSelf(@Param('id') id: string, @Request() req) {
     return this.service.assignToSelf(+id, req.user?.id);
   }
 
-  @Public()
   @Patch('admin/:id/assign/:userId')
   assignToUser(@Param('id') id: string, @Param('userId') userId: string, @Request() req) {
     return this.service.assignToUser(+id, +userId, req.user?.id);
   }
 
-  @Public()
   @Patch('admin/:id/status')
   adminUpdateStatus(@Param('id') id: string, @Body('status') status: string, @Request() req) {
     return this.service.updateStatus(+id, status, req.user?.id);
   }
 
-  @Public()
   @Patch('admin/:id/resolve')
   resolve(
     @Param('id') id: string,

@@ -76,6 +76,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [loading, user, router]);
 
+  // USER rolündekileri admin panelden uzak tut
+  useEffect(() => {
+    if (!loading && user && user.role === 'USER') {
+      router.push('/');
+    }
+  }, [loading, user, router]);
+
   if (pathname === '/admin/login' || pathname === '/admin/setup') {
     return <>{children}</>;
   }
@@ -143,7 +150,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-white truncate">{user?.username}</p>
-                <p className="text-xs text-gray-500">{user?.role === 'SUPER_ADMIN' ? 'Süper Admin' : 'Admin'}</p>
+                <p className="text-xs text-gray-500">{user?.role === 'SUPER_ADMIN' ? 'Süper Admin' : user?.role === 'USER' ? 'Personel' : 'Admin'}</p>
               </div>
               <button
                 onClick={logout}
